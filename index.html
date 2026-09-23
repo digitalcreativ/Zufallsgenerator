@@ -42,11 +42,6 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .step-toolbar button{font-size:20px;padding:12px 20px}
 .step-label{min-width:110px;text-align:center;font-size:20px;font-weight:700}
 .step-close{position:absolute;right:18px;top:18px;background:#fff;color:#111827;font-size:20px}
-.password-overlay{position:fixed;inset:0;z-index:1100;background:rgba(15,23,42,.78);display:flex;align-items:center;justify-content:center;padding:20px}
-.password-overlay.hidden{display:none}
-.password-box{width:min(420px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:var(--shadow)}
-.password-box input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px}
-.password-error{min-height:22px;margin-top:10px;color:var(--red);font-weight:700}
 .empty{color:#cbd5e1;text-align:center;padding:40px}
 .big{font-size:22px;padding:18px 26px}
 .filterbar{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
@@ -63,7 +58,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
   <div><h1>🎲 Zufallsbild-Generator</h1><p>Offline · für Beamer · Bilder werden direkt in dieser Datei gespeichert</p></div>
   <div class="tabs">
     <button id="tabGenerator" class="tab active">Generator</button>
-    <button id="tabVerwaltung" class="tab">🔒 Bildverwaltung</button>
+    <button id="tabVerwaltung" class="tab">Bildverwaltung</button>
   </div>
 </header>
 
@@ -169,24 +164,9 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
   </div>
 </div>
 
-<div id="passwordOverlay" class="password-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
-  <div class="password-box">
-    <h2 id="passwordTitle">🔒 Bildverwaltung entsperren</h2>
-    <p>Bitte gib das Passwort ein.</p>
-    <input id="managementPassword" type="password" inputmode="numeric" autocomplete="current-password">
-    <div id="passwordError" class="password-error"></div>
-    <div class="actions">
-      <button id="unlockManagementBtn" class="primary">Entsperren</button>
-      <button id="cancelPasswordBtn" class="secondary">Abbrechen</button>
-    </div>
-  </div>
-</div>
-
 <script>
 const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Kawaii","Gebäude","Fantasy"];
 const STORAGE_KEY = "zufallsbild_status_v1";
-const MANAGEMENT_PASSWORD_HASH = "4db4da60384e47d40db276bb49c097b3c1c698d6444a2a72f0acfb549a060fe0";
-let managementUnlocked=false;
 const INITIAL_IMAGES = [
   {id:"elefant", name:"Elefant", category:"Tiere", image:"Bilder/Elefant.png"},
   {id:"faultier", name:"Faultier", category:"Tiere", image:"Bilder/Faultier.png"},
@@ -586,54 +566,14 @@ document.getElementById("fullscreenBtn").onclick=async()=>{
   }
 };
 document.getElementById("tabGenerator").onclick=()=>switchTab("generator");
-document.getElementById("tabVerwaltung").onclick=openManagement;
-async function hashText(value){
-  const bytes=new TextEncoder().encode(value);
-  const digest=await crypto.subtle.digest("SHA-256",bytes);
-  return [...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");
-}
-function openManagement(){
-  if(managementUnlocked){switchTab("verwaltung");return;}
-  document.getElementById("passwordError").textContent="";
-  document.getElementById("managementPassword").value="";
-  document.getElementById("passwordOverlay").classList.remove("hidden");
-  setTimeout(()=>document.getElementById("managementPassword").focus(),0);
-}
-function closePasswordDialog(){
-  document.getElementById("passwordOverlay").classList.add("hidden");
-}
-async function unlockManagement(){
-  const input=document.getElementById("managementPassword");
-  const error=document.getElementById("passwordError");
-  try{
-    if(await hashText(input.value)!==MANAGEMENT_PASSWORD_HASH){
-      error.textContent="Das Passwort ist nicht korrekt.";
-      input.select();
-      return;
-    }
-    managementUnlocked=true;
-    document.getElementById("tabVerwaltung").textContent="🔓 Bildverwaltung";
-    closePasswordDialog();
-    switchTab("verwaltung");
-  }catch(e){
-    error.textContent="Die Passwortprüfung wird in dieser Vorschau nicht unterstützt. Öffne die Datei bitte direkt in Chrome oder Edge.";
-  }
-}
-document.getElementById("unlockManagementBtn").onclick=unlockManagement;
-document.getElementById("cancelPasswordBtn").onclick=closePasswordDialog;
-document.getElementById("managementPassword").onkeydown=event=>{
-  if(event.key==="Enter"){event.preventDefault();unlockManagement();}
-  if(event.key==="Escape")closePasswordDialog();
-};
+document.getElementById("tabVerwaltung").onclick=()=>switchTab("verwaltung");
 function switchTab(which){
-  if(which==="verwaltung"&&!managementUnlocked)return;
   document.getElementById("generator").classList.toggle("hidden",which!=="generator");
   document.getElementById("verwaltung").classList.toggle("hidden",which!=="verwaltung");
   document.getElementById("tabGenerator").classList.toggle("active",which==="generator");
   document.getElementById("tabVerwaltung").classList.toggle("active",which==="verwaltung");
 }
 document.addEventListener("keydown",e=>{
-  if(!document.getElementById("passwordOverlay").classList.contains("hidden"))return;
   if(!document.getElementById("stepViewer").classList.contains("hidden")){
     if(e.key==="ArrowLeft"){e.preventDefault();changeStep(-1);}
     if(e.key==="ArrowRight"){e.preventDefault();changeStep(1);}
