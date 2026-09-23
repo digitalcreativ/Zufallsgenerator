@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zufallsbild-Generator</title>
+<style>
+:root{
+  --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
+  --accent:#4f46e5; --accent2:#eef2ff; --green:#15803d; --red:#b91c1c;
+  --border:#dbe1ea; --shadow:0 8px 30px rgba(31,41,55,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,select,input{font:inherit}
+button{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;font-weight:700}
+header{padding:20px 28px;background:#fff;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:20px}
+h1,h2,h3{margin:0 0 10px}
+header h1{font-size:26px}
+header p{margin:0;color:var(--muted)}
+.tabs{display:flex;gap:8px}
+.tab{background:#eef0f4;color:#374151}.tab.active{background:var(--accent);color:#fff}
+main{max-width:1200px;margin:28px auto;padding:0 20px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;box-shadow:var(--shadow);margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.field label{display:block;font-weight:700;margin-bottom:7px}
+.field small{display:block;color:var(--muted);margin-top:5px}
+input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff}
+.filebox{border:2px dashed #cbd5e1;border-radius:12px;padding:14px;background:#fafbff}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.primary{background:var(--accent);color:#fff}.secondary{background:#e8edf5}.success{background:#dcfce7;color:var(--green)}.danger{background:#fee2e2;color:var(--red)}
+.status{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:14px 0}
+.preview{min-height:360px;border:1px solid var(--border);border-radius:16px;background:#111827;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.preview img{max-width:100%;max-height:65vh;object-fit:contain}
+.empty{color:#cbd5e1;text-align:center;padding:40px}
+.big{font-size:22px;padding:18px 26px}
+.filterbar{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
+.library{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
+.card.inactive{opacity:.5}.thumb{height:140px;background:#111827;display:flex;align-items:center;justify-content:center}.thumb img{max-width:100%;max-height:100%;object-fit:contain}.cardbody{padding:12px}.meta{font-size:13px;color:var(--muted);margin:4px 0}.pill{display:inline-block;background:var(--accent2);color:#4338ca;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700}
+.notice{padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;margin-top:14px}
+.hidden{display:none!important}
+@media(max-width:800px){.grid,.filterbar{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🎲 Zufallsbild-Generator</h1><p>Offline · für Beamer · Bilder werden direkt in dieser Datei gespeichert</p></div>
+  <div class="tabs">
+    <button id="tabGenerator" class="tab active">Generator</button>
+    <button id="tabVerwaltung" class="tab">Bildverwaltung</button>
+  </div>
+</header>
+
+<main>
+<section id="generator">
+  <div class="panel">
+    <h2>Zufallsbild auswählen</h2>
+    <div class="filterbar">
+      <div class="field">
+        <label for="categoryFilter">Kategorie</label>
+        <select id="categoryFilter"></select>
+      </div>
+      <div>
+        <div class="status" id="stats"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary big" id="drawBtn">🎲 Zufallsbild auswählen</button>
+      <button class="secondary" id="fullscreenBtn">⛶ Vollbild</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div id="currentInfo" class="status">Noch kein Bild ausgewählt.</div>
+    <div class="preview" id="preview"><div class="empty">Klicke auf «Zufallsbild auswählen».</div></div>
+    <div class="actions">
+      <button class="success big" id="doneBtn" disabled>✓ Bild erledigt</button>
+      <button class="secondary big" id="keepBtn" disabled>↻ Bild aktiv lassen</button>
+      <button class="primary big" id="nextBtn" disabled>🎲 Nächstes Bild</button>
+    </div>
+    <div class="notice">«Bild erledigt» entfernt das aktuelle Bild aus der Auswahl. «Bild aktiv lassen» behält es in der Auswahl. Beides führt anschliessend zum nächsten Bild.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Zurücksetzen</h2>
+    <div class="actions">
+      <button class="secondary" id="resetCategoryBtn">↻ Kategorie zurücksetzen</button>
+      <button class="danger" id="resetAllBtn">↻ Alle Bilder zurücksetzen</button>
+    </div>
+  </div>
+</section>
+
+<section id="verwaltung" class="hidden">
+  <div class="panel">
+    <h2>Bild hinzufügen</h2>
+    <p>Jedes Bild bekommt einen klaren Namen und genau eine Kategorie. Die Bilddatei wird direkt in dieser HTML-Datei gespeichert.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="imageFile">Bild</label>
+        <div class="filebox"><input id="imageFile" type="file" accept="image/*"></div>
+        <small>Lokale Datei: JPG, PNG, GIF, WebP usw.</small>
+      </div>
+      <div class="field">
+        <label for="imageUrl">oder Bild-URL</label>
+        <input id="imageUrl" type="url" placeholder="https://beispiel.ch/bild.jpg">
+        <small>Direkter Link zu einer Bilddatei. Sie wird für den Offline-Export eingebettet.</small>
+      </div>
+      <div class="field">
+        <label for="imageName">Name</label>
+        <input id="imageName" type="text" placeholder="z. B. Katze">
+        <small>Ein kurzer, eindeutiger Name.</small>
+      </div>
+      <div class="field">
+        <label for="imageCategory">Kategorie</label>
+        <select id="imageCategory"></select>
+        <small>Tiere, Pflanzen, Dinge, Comics, Kawaii, Gebäude oder Fantasy.</small>
+      </div>
+    </div>
+    <div class="actions"><button class="primary" id="addBtn">＋ Bild zur Sammlung hinzufügen</button></div>
+    <div id="addMessage"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Bildsammlung</h2>
+    <div class="status" id="libraryStats"></div>
+    <div class="library" id="library"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Änderungen dauerhaft in dieser HTML-Datei speichern</h2>
+    <p>Browser können eine HTML-Datei nicht selbst überschreiben. Nach dem Hinzufügen oder Ändern von Bildern kannst du hier eine neue HTML-Datei mit deiner aktuellen Bildsammlung erzeugen.</p>
+    <div class="actions">
+      <button class="primary" id="exportBtn">💾 Fertige HTML-Datei erstellen</button>
+      <button class="secondary" id="clearStorageBtn">Browser-Speicher für diese Datei löschen</button>
+    </div>
+    <div class="notice">Tipp: Verwende nach Änderungen immer «Fertige HTML-Datei erstellen» und öffne danach die neu erzeugte Datei. So sind die Bilder tatsächlich in der HTML-Datei enthalten.</div>
+  </div>
+</section>
+</main>
+
+<script>
+const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Kawaii","Gebäude","Fantasy"];
+const STORAGE_KEY = "zufallsbild_status_v1";
+const INITIAL_IMAGES = [
+  {id:"elefant", name:"Elefant", category:"Tiere", image:"Bilder/Elefant.png"},
+  {id:"faultier", name:"Faultier", category:"Tiere", image:"Bilder/Faultier.png"},
+  {id:"giraffe", name:"Giraffe", category:"Tiere", image:"Bilder/Giraffe.png"},
+  {id:"panda", name:"Panda", category:"Tiere", image:"Bilder/Panda.png"},
+  {id:"wichtel", name:"Wichtel", category:"Fantasy", image:"Bilder/Wichtel.png"},
+  // ============================================================
+  // HIER KÖNNEN VORBEREITETE BILDER DIREKT IN DEN HTML-CODE.
+  // Format:
+  // {id:"...", name:"Katze", category:"Tiere", image:"data:image/png;base64,..."},
+  // ============================================================
+];
+
+let images = [...INITIAL_IMAGES].map(x=>({...x, active:true}));
+let currentId = null;
+
+function loadStatus(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}");
+    images.forEach(img=>{ if(saved[img.id] !== undefined) img.active=saved[img.id]; });
+  }catch(e){}
+}
+function saveStatus(){
+  const s={}; images.forEach(i=>s[i.id]=i.active);
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
+}
+function populateCategories(){
+  const filter=document.getElementById("categoryFilter");
+  filter.innerHTML='<option value="Alle">Alle Kategorien</option>'+CATEGORIES.map(c=>`<option>${c}</option>`).join("");
+  document.getElementById("imageCategory").innerHTML=CATEGORIES.map(c=>`<option>${c}</option>`).join("");
+}
+function filteredActive(){
+  const cat=document.getElementById("categoryFilter").value;
+  return images.filter(i=>i.active&&(cat==="Alle"||i.category===cat));
+}
+function updateStats(){
+  const cat=document.getElementById("categoryFilter").value;
+  const relevant=images.filter(i=>cat==="Alle"||i.category===cat);
+  const active=relevant.filter(i=>i.active).length;
+  document.getElementById("stats").textContent=`Aktiv: ${active} von ${relevant.length}`;
+  document.getElementById("libraryStats").textContent=`Gesamt: ${images.length} · Aktiv: ${images.filter(i=>i.active).length} · Inaktiv: ${images.filter(i=>!i.active).length}`;
+}
+function showImage(img){
+  currentId=img.id;
+  document.getElementById("preview").innerHTML=`<img src="${img.image}" alt="${escapeHtml(img.name)}">`;
+  document.getElementById("currentInfo").innerHTML=`<strong>${escapeHtml(img.name)}</strong> · <span class="pill">${escapeHtml(img.category)}</span>`;
+  ["doneBtn","keepBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=false);
+}
+function draw(){
+  let pool=filteredActive();
+  if(!pool.length){
+    const cat=document.getElementById("categoryFilter").value;
+    const relevant=images.filter(i=>cat==="Alle"||i.category===cat);
+    if(relevant.length && relevant.every(i=>!i.active)){
+      alert(cat==="Alle" ? "Alle Bilder wurden verwendet. Die Liste kann jetzt neu gestartet werden." : `Alle Bilder der Kategorie «${cat}» wurden verwendet. Bitte setze die Kategorie zurück.`);
+    }else alert("Für diese Auswahl sind keine Bilder vorhanden.");
+    return;
+  }
+  const img=pool[Math.floor(Math.random()*pool.length)];
+  showImage(img);
+}
+function finish(keep){
+  if(currentId===null)return;
+  const img=images.find(i=>i.id===currentId);
+  if(!img)return;
+  img.active=keep;
+  saveStatus();
+  draw();
+}
+function resetCategory(){
+  const cat=document.getElementById("categoryFilter").value;
+  if(cat==="Alle"){ resetAll(); return; }
+  images.filter(i=>i.category===cat).forEach(i=>i.active=true);
+  saveStatus(); currentId=null; clearCurrent(); updateAll();
+}
+function resetAll(){
+  images.forEach(i=>i.active=true);
+  saveStatus(); currentId=null; clearCurrent(); updateAll();
+}
+function clearCurrent(){
+  document.getElementById("preview").innerHTML='<div class="empty">Klicke auf «Zufallsbild auswählen».</div>';
+  document.getElementById("currentInfo").textContent="Noch kein Bild ausgewählt.";
+  ["doneBtn","keepBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=true);
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function renderLibrary(){
+  const el=document.getElementById("library");
+  if(!images.length){el.innerHTML='<div class="empty">Noch keine Bilder vorhanden.</div>';return;}
+  el.innerHTML=images.map(i=>`
+    <div class="card ${i.active?"":"inactive"}">
+      <div class="thumb"><img src="${i.image}" alt="${escapeHtml(i.name)}"></div>
+      <div class="cardbody">
+        <strong>${escapeHtml(i.name)}</strong>
+        <div class="meta"><span class="pill">${escapeHtml(i.category)}</span></div>
+        <div class="meta">${i.active?"● aktiv":"○ inaktiv"}</div>
+        <button class="${i.active?"secondary":"success"}" onclick="toggleActive('${i.id}')">${i.active?"Als inaktiv markieren":"Aktivieren"}</button>
+        <button class="danger" onclick="removeImage('${i.id}')">Löschen</button>
+      </div>
+    </div>`).join("");
+}
+function toggleActive(id){
+  const i=images.find(x=>x.id===id); if(!i)return;
+  i.active=!i.active; saveStatus(); updateAll();
+}
+function removeImage(id){
+  const i=images.find(x=>x.id===id); if(!i)return;
+  if(confirm(`«${i.name}» wirklich löschen?`)){
+    images=images.filter(x=>x.id!==id);
+    if(currentId===id){currentId=null;clearCurrent();}
+    saveStatus();updateAll();
+  }
+}
+function updateAll(){updateStats();renderLibrary();}
+function dataUrlFromBlob(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(new Error("Datei konnte nicht gelesen werden."));
+    reader.readAsDataURL(blob);
+  });
+}
+async function addImage(){
+  const file=document.getElementById("imageFile").files[0];
+  const url=document.getElementById("imageUrl").value.trim();
+  const name=document.getElementById("imageName").value.trim();
+  const category=document.getElementById("imageCategory").value;
+  const msg=document.getElementById("addMessage");
+  if((!file&&!url)||!name||!category){msg.innerHTML='<div class="notice">Bitte wähle eine lokale Bilddatei oder gib eine Bild-URL sowie Name und Kategorie an.</div>';return;}
+  if(file&&url){msg.innerHTML='<div class="notice">Bitte verwende entweder eine lokale Bilddatei oder eine Bild-URL, nicht beides.</div>';return;}
+  try{
+    let image;
+    if(file){
+      image=await dataUrlFromBlob(file);
+    }else{
+      let parsed;
+      try{parsed=new URL(url);}catch(e){throw new Error("Bitte gib eine vollständige Bild-URL ein, z. B. https://beispiel.ch/bild.jpg.");}
+      if(!["http:","https:"].includes(parsed.protocol)) throw new Error("Es sind nur http- und https-Bild-URLs erlaubt.");
+      msg.innerHTML='<div class="notice">Bild wird geladen …</div>';
+      const response=await fetch(parsed.href);
+      if(!response.ok) throw new Error(`Das Bild konnte nicht geladen werden (HTTP ${response.status}).`);
+      const blob=await response.blob();
+      if(!blob.type.startsWith("image/")) throw new Error("Die URL verweist nicht auf eine Bilddatei.");
+      image=await dataUrlFromBlob(blob);
+    }
+    images.push({id:crypto.randomUUID(),name,category,image,active:true});
+    document.getElementById("imageFile").value="";
+    document.getElementById("imageUrl").value="";
+    document.getElementById("imageName").value="";
+    msg.innerHTML='<div class="notice">✓ Bild wurde zur Sammlung hinzugefügt.</div>';
+    saveStatus();updateAll();
+  }catch(error){
+    const detail=error instanceof TypeError ? "Die Website erlaubt keinen direkten Download durch den Browser (CORS). Lade das Bild zuerst lokal herunter und wähle es dann als Datei aus." : error.message;
+    msg.innerHTML=`<div class="notice">Bild konnte nicht hinzugefügt werden: ${escapeHtml(detail)}</div>`;
+  }
+}
+function exportHtml(){
+  const cleanImages=images.map(i=>({id:i.id,name:i.name,category:i.category,image:i.image}));
+  let html=document.documentElement.outerHTML;
+  const replacement=`const INITIAL_IMAGES = ${JSON.stringify(cleanImages)};`;
+  html=html.replace(/const INITIAL_IMAGES = \\[[\\s\\S]*?\\];/,replacement);
+  html=html.replace(/<script>[\s\S]*?<\/script>/,m=>m);
+  const blob=new Blob(["<!DOCTYPE html>\n"+html],{type:"text/html;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Zufallsbild-Generator.html";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+document.getElementById("drawBtn").onclick=draw;
+document.getElementById("doneBtn").onclick=()=>finish(false);
+document.getElementById("keepBtn").onclick=()=>finish(true);
+document.getElementById("nextBtn").onclick=draw;
+document.getElementById("resetCategoryBtn").onclick=resetCategory;
+document.getElementById("resetAllBtn").onclick=resetAll;
+document.getElementById("categoryFilter").onchange=()=>{currentId=null;clearCurrent();updateStats();};
+document.getElementById("addBtn").onclick=addImage;
+document.getElementById("exportBtn").onclick=exportHtml;
+document.getElementById("clearStorageBtn").onclick=()=>{if(confirm("Den gespeicherten Verwendungsstatus löschen?")){localStorage.removeItem(STORAGE_KEY);images.forEach(i=>i.active=true);updateAll();}};
+document.getElementById("fullscreenBtn").onclick=async()=>{try{await document.documentElement.requestFullscreen();}catch(e){}};
+document.getElementById("tabGenerator").onclick=()=>switchTab("generator");
+document.getElementById("tabVerwaltung").onclick=()=>switchTab("verwaltung");
+function switchTab(which){
+  document.getElementById("generator").classList.toggle("hidden",which!=="generator");
+  document.getElementById("verwaltung").classList.toggle("hidden",which!=="verwaltung");
+  document.getElementById("tabGenerator").classList.toggle("active",which==="generator");
+  document.getElementById("tabVerwaltung").classList.toggle("active",which==="verwaltung");
+}
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space" && !e.target.matches("input,select")){e.preventDefault();draw();}
+  if(e.key==="Enter" && currentId!==null && !document.getElementById("doneBtn").disabled) finish(false);
+});
+populateCategories();loadStatus();updateAll();
+</script>
+</body>
+</html>
