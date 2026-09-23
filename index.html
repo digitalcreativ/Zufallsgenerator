@@ -117,7 +117,12 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
         <small>Tiere, Pflanzen, Dinge, Comics, Kawaii, Gebäude oder Fantasy.</small>
       </div>
     </div>
-    <div class="actions"><button class="primary" id="addBtn">＋ Bild zur Sammlung hinzufügen</button></div>
+    <div class="actions">
+      <button class="primary" id="addBtn">＋ Bild zur Sammlung hinzufügen</button>
+      <button class="secondary" id="importFolderBtn">📁 Bilderordner einlesen</button>
+      <input id="folderInput" class="hidden" type="file" accept="image/*" multiple webkitdirectory directory>
+    </div>
+    <div class="notice">Beim Ordnerimport erhalten alle neuen Bilder die oben gewählte Kategorie. Der Dateiname wird als Bildname verwendet; bereits vorhandene Namen werden übersprungen.</div>
     <div id="addMessage"></div>
   </div>
 
@@ -297,11 +302,46 @@ async function addImage(){
     msg.innerHTML=`<div class="notice">Bild konnte nicht hinzugefügt werden: ${escapeHtml(detail)}</div>`;
   }
 }
+async function importFolder(){
+  const input=document.getElementById("folderInput");
+  const msg=document.getElementById("addMessage");
+  const category=document.getElementById("imageCategory").value;
+  const files=[...input.files].filter(file=>file.type.startsWith("image/"));
+  if(!files.length){
+    msg.innerHTML='<div class="notice">Im ausgewählten Ordner wurden keine unterstützten Bilddateien gefunden.</div>';
+    input.value="";
+    return;
+  }
+
+  const existingNames=new Set(images.map(image=>image.name.trim().toLocaleLowerCase("de")));
+  let added=0;
+  let skipped=0;
+  msg.innerHTML='<div class="notice">Bilder werden eingelesen …</div>';
+
+  for(const file of files){
+    const name=file.name.replace(/\.[^.]+$/,"").trim();
+    const key=name.toLocaleLowerCase("de");
+    if(!name||existingNames.has(key)){
+      skipped++;
+      continue;
+    }
+    const image=await dataUrlFromBlob(file);
+    images.push({id:crypto.randomUUID(),name,category,image,active:true});
+    existingNames.add(key);
+    added++;
+  }
+
+  input.value="";
+  saveStatus();
+  updateAll();
+  msg.innerHTML=`<div class="notice">✓ ${added} Bild${added===1?"":"er"} importiert${skipped?` · ${skipped} bereits vorhanden oder übersprungen`:""}. Erstelle nun eine fertige HTML-Datei, um die eingebetteten Bilder dauerhaft zu speichern.</div>`;
+}
+
 function exportHtml(){
   const cleanImages=images.map(i=>({id:i.id,name:i.name,category:i.category,image:i.image}));
   let html=document.documentElement.outerHTML;
   const replacement=`const INITIAL_IMAGES = ${JSON.stringify(cleanImages)};`;
-  html=html.replace(/const INITIAL_IMAGES = \\[[\\s\\S]*?\\];/,replacement);
+  html=html.replace(/const INITIAL_IMAGES = \[[\s\S]*?\];/,replacement);
   html=html.replace(/<script>[\s\S]*?<\/script>/,m=>m);
   const blob=new Blob(["<!DOCTYPE html>\n"+html],{type:"text/html;charset=utf-8"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Zufallsbild-Generator.html";a.click();
@@ -315,6 +355,8 @@ document.getElementById("resetCategoryBtn").onclick=resetCategory;
 document.getElementById("resetAllBtn").onclick=resetAll;
 document.getElementById("categoryFilter").onchange=()=>{currentId=null;clearCurrent();updateStats();};
 document.getElementById("addBtn").onclick=addImage;
+document.getElementById("importFolderBtn").onclick=()=>document.getElementById("folderInput").click();
+document.getElementById("folderInput").onchange=importFolder;
 document.getElementById("exportBtn").onclick=exportHtml;
 document.getElementById("clearStorageBtn").onclick=()=>{if(confirm("Den gespeicherten Verwendungsstatus löschen?")){localStorage.removeItem(STORAGE_KEY);images.forEach(i=>i.active=true);updateAll();}};
 document.getElementById("fullscreenBtn").onclick=async()=>{try{await document.documentElement.requestFullscreen();}catch(e){}};
