@@ -153,6 +153,8 @@ const INITIAL_IMAGES = [
   {id:"giraffe", name:"Giraffe", category:"Tiere", image:"Bilder/Giraffe.png"},
   {id:"panda", name:"Panda", category:"Tiere", image:"Bilder/Panda.png"},
   {id:"wichtel", name:"Wichtel", category:"Fantasy", image:"Bilder/Wichtel.png"},
+  {id:"eis-am-stiel", name:"Eis am Stiel", category:["Dinge","Kawaii"], image:"Bilder/Eis_am_Stiel.png"},
+  {id:"muffin", name:"Muffin", category:["Dinge","Kawaii"], image:"Bilder/Muffin.png"},
   // ============================================================
   // HIER KÖNNEN VORBEREITETE BILDER DIREKT IN DEN HTML-CODE.
   // Format:
@@ -178,13 +180,22 @@ function populateCategories(){
   filter.innerHTML='<option value="Alle">Alle Kategorien</option>'+CATEGORIES.map(c=>`<option>${c}</option>`).join("");
   document.getElementById("imageCategory").innerHTML=CATEGORIES.map(c=>`<option>${c}</option>`).join("");
 }
+function imageCategories(image){
+  return Array.isArray(image.category) ? image.category : [image.category];
+}
+function belongsToCategory(image,category){
+  return category==="Alle"||imageCategories(image).includes(category);
+}
+function categoryBadges(image){
+  return imageCategories(image).map(category=>`<span class="pill">${escapeHtml(category)}</span>`).join(" ");
+}
 function filteredActive(){
   const cat=document.getElementById("categoryFilter").value;
-  return images.filter(i=>i.active&&(cat==="Alle"||i.category===cat));
+  return images.filter(i=>i.active&&belongsToCategory(i,cat));
 }
 function updateStats(){
   const cat=document.getElementById("categoryFilter").value;
-  const relevant=images.filter(i=>cat==="Alle"||i.category===cat);
+  const relevant=images.filter(i=>belongsToCategory(i,cat));
   const active=relevant.filter(i=>i.active).length;
   document.getElementById("stats").textContent=`Aktiv: ${active} von ${relevant.length}`;
   document.getElementById("libraryStats").textContent=`Gesamt: ${images.length} · Aktiv: ${images.filter(i=>i.active).length} · Inaktiv: ${images.filter(i=>!i.active).length}`;
@@ -192,14 +203,14 @@ function updateStats(){
 function showImage(img){
   currentId=img.id;
   document.getElementById("preview").innerHTML=`<img src="${img.image}" alt="${escapeHtml(img.name)}">`;
-  document.getElementById("currentInfo").innerHTML=`<strong>${escapeHtml(img.name)}</strong> · <span class="pill">${escapeHtml(img.category)}</span>`;
+  document.getElementById("currentInfo").innerHTML=`<strong>${escapeHtml(img.name)}</strong> · ${categoryBadges(img)}`;
   ["doneBtn","keepBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=false);
 }
 function draw(){
   let pool=filteredActive();
   if(!pool.length){
     const cat=document.getElementById("categoryFilter").value;
-    const relevant=images.filter(i=>cat==="Alle"||i.category===cat);
+    const relevant=images.filter(i=>belongsToCategory(i,cat));
     if(relevant.length && relevant.every(i=>!i.active)){
       alert(cat==="Alle" ? "Alle Bilder wurden verwendet. Die Liste kann jetzt neu gestartet werden." : `Alle Bilder der Kategorie «${cat}» wurden verwendet. Bitte setze die Kategorie zurück.`);
     }else alert("Für diese Auswahl sind keine Bilder vorhanden.");
@@ -219,7 +230,7 @@ function finish(keep){
 function resetCategory(){
   const cat=document.getElementById("categoryFilter").value;
   if(cat==="Alle"){ resetAll(); return; }
-  images.filter(i=>i.category===cat).forEach(i=>i.active=true);
+  images.filter(i=>belongsToCategory(i,cat)).forEach(i=>i.active=true);
   saveStatus(); currentId=null; clearCurrent(); updateAll();
 }
 function resetAll(){
@@ -240,7 +251,7 @@ function renderLibrary(){
       <div class="thumb"><img src="${i.image}" alt="${escapeHtml(i.name)}"></div>
       <div class="cardbody">
         <strong>${escapeHtml(i.name)}</strong>
-        <div class="meta"><span class="pill">${escapeHtml(i.category)}</span></div>
+        <div class="meta">${categoryBadges(i)}</div>
         <div class="meta">${i.active?"● aktiv":"○ inaktiv"}</div>
         <button class="${i.active?"secondary":"success"}" onclick="toggleActive('${i.id}')">${i.active?"Als inaktiv markieren":"Aktivieren"}</button>
         <button class="danger" onclick="removeImage('${i.id}')">Löschen</button>
