@@ -35,13 +35,6 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .preview:fullscreen{width:100vw;height:100vh;max-width:none;max-height:none;border:0;border-radius:0;background:#000}
 .preview:fullscreen img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
 .preview img{cursor:zoom-in}
-.step-viewer{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px}
-.step-viewer.hidden{display:none}
-.step-canvas{max-width:92vw;max-height:78vh;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.5)}
-.step-toolbar{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;color:#fff}
-.step-toolbar button{font-size:20px;padding:12px 20px}
-.step-label{min-width:110px;text-align:center;font-size:20px;font-weight:700}
-.step-close{position:absolute;right:18px;top:18px;background:#fff;color:#111827;font-size:20px}
 .empty{color:#cbd5e1;text-align:center;padding:40px}
 .big{font-size:22px;padding:18px 26px}
 .filterbar{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
@@ -89,7 +82,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
       <button class="secondary big" id="keepBtn" disabled>↻ Bild aktiv lassen</button>
       <button class="primary big" id="nextBtn" disabled>🎲 Nächstes Bild</button>
     </div>
-    <div class="notice">Klicke auf einen der acht Schritte im Bild, um ihn vergrössert anzusehen. Mit «Zurück» und «Weiter» wechselst du die Schritte. «Bild erledigt» entfernt das aktuelle Bild aus der Auswahl.</div>
+    <div class="notice">Klicke auf das Bild, um es im Vollbild anzuzeigen. «Bild erledigt» entfernt das aktuelle Bild aus der Auswahl.</div>
   </div>
 
   <div class="panel">
@@ -153,16 +146,6 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
   </div>
 </section>
 </main>
-
-<div id="stepViewer" class="step-viewer hidden" role="dialog" aria-modal="true" aria-label="Vergrösserte Schrittansicht">
-  <button id="closeStepBtn" class="step-close" aria-label="Schrittansicht schliessen">✕</button>
-  <canvas id="stepCanvas" class="step-canvas"></canvas>
-  <div class="step-toolbar">
-    <button id="previousStepBtn" class="secondary">← Zurück</button>
-    <div id="stepLabel" class="step-label">Schritt 1 / 8</div>
-    <button id="nextStepBtn" class="primary">Weiter →</button>
-  </div>
-</div>
 
 <script>
 const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Kawaii","Gebäude","Fantasy"];
@@ -386,172 +369,19 @@ function exportHtml(){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Zufallsbild-Generator.html";a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
-let currentStep=0;
-const stepGridCache=new Map();
-
-function defaultStepRects(width,height){
-  return Array.from({length:8},(_,step)=>{
-    const column=step%4;
-    const row=Math.floor(step/4);
-    return {
-      x:Math.round(width*column/4),
-      y:Math.round(height*(row === 0 ? .17 : .56)),
-      width:Math.round(width/4),
-      height:Math.round(height*(row === 0 ? .38 : .41))
-    };
-  });
-}
-
-function detectStepRects(source){
-  const fallback=defaultStepRects(source.naturalWidth,source.naturalHeight);
+async function togglePreviewFullscreen(){
+  const preview=document.getElementById("preview");
   try{
-    const analysisWidth=Math.min(600,source.naturalWidth);
-    const scale=analysisWidth/source.naturalWidth;
-    const analysisHeight=Math.round(source.naturalHeight*scale);
-    const canvas=document.createElement("canvas");
-    canvas.width=analysisWidth;
-    canvas.height=analysisHeight;
-    const context=canvas.getContext("2d",{willReadFrequently:true});
-    context.drawImage(source,0,0,analysisWidth,analysisHeight);
-    const pixels=context.getImageData(0,0,analysisWidth,analysisHeight).data;
-    const visited=new Uint8Array(analysisWidth*analysisHeight);
-    const isRed=index=>{
-      const offset=index*4;
-      const red=pixels[offset],green=pixels[offset+1],blue=pixels[offset+2];
-      return red>190&&red>green*1.45&&red>blue*1.35&&green<155;
-    };
-    const components=[];
-
-    for(let index=0;index<visited.length;index++){
-      if(visited[index]||!isRed(index))continue;
-      const stack=[index];
-      visited[index]=1;
-      let area=0,minX=analysisWidth,maxX=0,minY=analysisHeight,maxY=0,sumX=0,sumY=0;
-      while(stack.length){
-        const point=stack.pop();
-        const x=point%analysisWidth;
-        const y=Math.floor(point/analysisWidth);
-        area++;sumX+=x;sumY+=y;
-        minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
-        const neighbours=[];
-        if(x>0)neighbours.push(point-1);
-        if(x<analysisWidth-1)neighbours.push(point+1);
-        if(y>0)neighbours.push(point-analysisWidth);
-        if(y<analysisHeight-1)neighbours.push(point+analysisWidth);
-        for(const neighbour of neighbours){
-          if(!visited[neighbour]&&isRed(neighbour)){visited[neighbour]=1;stack.push(neighbour);}
-        }
-      }
-      const width=maxX-minX+1,height=maxY-minY+1;
-      if(area>60&&width>10&&height>10&&width<analysisWidth*.1&&height<analysisHeight*.14&&width/height>.55&&width/height<1.7){
-        components.push({x:sumX/area,y:sumY/area,area});
-      }
-    }
-
-    const groups=[];
-    for(const component of components.sort((a,b)=>a.y-b.y)){
-      let group=groups.find(candidate=>Math.abs(candidate.y-component.y)<analysisHeight*.028);
-      if(!group){group={y:component.y,items:[]};groups.push(group);}
-      group.items.push(component);
-      group.y=group.items.reduce((sum,item)=>sum+item.y,0)/group.items.length;
-    }
-    const rows=groups.map(group=>{
-      const markers=[];
-      for(let column=0;column<4;column++){
-        const candidates=group.items.filter(item=>Math.floor(item.x/analysisWidth*4)===column);
-        if(!candidates.length)return null;
-        markers.push(candidates.sort((a,b)=>a.x-b.x)[0]);
-      }
-      return {y:markers.reduce((sum,item)=>sum+item.y,0)/4,markers};
-    }).filter(Boolean).sort((a,b)=>a.y-b.y);
-
-    let rowPair=null;
-    for(let first=0;first<rows.length;first++){
-      for(let second=first+1;second<rows.length;second++){
-        const distance=rows[second].y-rows[first].y;
-        if(distance>analysisHeight*.25&&distance<analysisHeight*.55){rowPair=[rows[first],rows[second]];break;}
-      }
-      if(rowPair)break;
-    }
-    if(!rowPair)return fallback;
-
-    const markerX=Array.from({length:4},(_,column)=>(rowPair[0].markers[column].x+rowPair[1].markers[column].x)/2);
-    const xStarts=markerX.map(x=>Math.max(0,x-analysisWidth*.04));
-    const xEnds=xStarts.map((start,column)=>column<3?xStarts[column+1]-analysisWidth*.008:analysisWidth-analysisWidth*.01);
-    const yStarts=rowPair.map(row=>Math.max(0,row.y-analysisHeight*.045));
-    const yEnds=[yStarts[1]-analysisHeight*.01,analysisHeight-analysisHeight*.015];
-    const inverseScale=1/scale;
-    return Array.from({length:8},(_,step)=>{
-      const column=step%4,row=Math.floor(step/4);
-      return {
-        x:Math.round(xStarts[column]*inverseScale),
-        y:Math.round(yStarts[row]*inverseScale),
-        width:Math.round((xEnds[column]-xStarts[column])*inverseScale),
-        height:Math.round((yEnds[row]-yStarts[row])*inverseScale)
-      };
-    });
-  }catch(error){
-    return fallback;
+    if(document.fullscreenElement) await document.exitFullscreen();
+    else await preview.requestFullscreen();
+  }catch(e){
+    alert("Der Bild-Vollbildmodus wird von diesem Browser nicht unterstützt.");
   }
 }
 
-function drawStep(){
-  const selected=images.find(image=>image.id===currentId);
-  if(!selected)return;
-  const source=new Image();
-  source.onload=()=>{
-    if(!stepGridCache.has(selected.image))stepGridCache.set(selected.image,detectStepRects(source));
-    const detected=stepGridCache.get(selected.image)[currentStep];
-    const marginX=Math.round(source.naturalWidth*.006);
-    const marginY=Math.round(source.naturalHeight*.01);
-    const crop={
-      x:Math.max(0,detected.x-marginX),
-      y:Math.max(0,detected.y-marginY),
-      width:Math.min(source.naturalWidth,detected.x+detected.width+marginX)-Math.max(0,detected.x-marginX),
-      height:Math.min(source.naturalHeight,detected.y+detected.height+marginY)-Math.max(0,detected.y-marginY)
-    };
-    const canvas=document.getElementById("stepCanvas");
-    canvas.width=crop.width;
-    canvas.height=crop.height;
-    canvas.getContext("2d").drawImage(source,crop.x,crop.y,crop.width,crop.height,0,0,crop.width,crop.height);
-    document.getElementById("stepLabel").textContent=`Schritt ${currentStep+1} / 8`;
-  };
-  source.src=selected.image;
-}
-
-async function openStepViewer(step){
-  if(document.fullscreenElement) await document.exitFullscreen();
-  currentStep=Math.max(0,Math.min(7,step));
-  document.getElementById("stepViewer").classList.remove("hidden");
-  drawStep();
-}
-
-function closeStepViewer(){
-  document.getElementById("stepViewer").classList.add("hidden");
-}
-
-function changeStep(direction){
-  currentStep=(currentStep+direction+8)%8;
-  drawStep();
-}
-
 document.getElementById("preview").onclick=event=>{
-  if(event.target.tagName!=="IMG")return;
-  const rect=event.target.getBoundingClientRect();
-  const scale=Math.min(rect.width/event.target.naturalWidth,rect.height/event.target.naturalHeight);
-  const imageWidth=event.target.naturalWidth*scale;
-  const imageHeight=event.target.naturalHeight*scale;
-  const imageLeft=rect.left+(rect.width-imageWidth)/2;
-  const imageTop=rect.top+(rect.height-imageHeight)/2;
-  const x=Math.min(1,Math.max(0,(event.clientX-imageLeft)/imageWidth));
-  const y=Math.min(1,Math.max(0,(event.clientY-imageTop)/imageHeight));
-  const column=Math.min(3,Math.floor(x*4));
-  const row=y<.55?0:1;
-  openStepViewer(row*4+column);
+  if(event.target.tagName==="IMG")togglePreviewFullscreen();
 };
-document.getElementById("previousStepBtn").onclick=()=>changeStep(-1);
-document.getElementById("nextStepBtn").onclick=()=>changeStep(1);
-document.getElementById("closeStepBtn").onclick=closeStepViewer;
 document.getElementById("drawBtn").onclick=draw;
 document.getElementById("doneBtn").onclick=()=>finish(false);
 document.getElementById("keepBtn").onclick=()=>finish(true);
@@ -564,15 +394,7 @@ document.getElementById("importFolderBtn").onclick=()=>document.getElementById("
 document.getElementById("folderInput").onchange=importFolder;
 document.getElementById("exportBtn").onclick=exportHtml;
 document.getElementById("clearStorageBtn").onclick=()=>{if(confirm("Den gespeicherten Verwendungsstatus löschen?")){localStorage.removeItem(STORAGE_KEY);images.forEach(i=>i.active=true);updateAll();}};
-document.getElementById("fullscreenBtn").onclick=async()=>{
-  const preview=document.getElementById("preview");
-  try{
-    if(document.fullscreenElement) await document.exitFullscreen();
-    else await preview.requestFullscreen();
-  }catch(e){
-    alert("Der Bild-Vollbildmodus wird von diesem Browser nicht unterstützt.");
-  }
-};
+document.getElementById("fullscreenBtn").onclick=togglePreviewFullscreen;
 document.getElementById("tabGenerator").onclick=()=>switchTab("generator");
 document.getElementById("tabVerwaltung").onclick=()=>switchTab("verwaltung");
 function switchTab(which){
@@ -582,12 +404,6 @@ function switchTab(which){
   document.getElementById("tabVerwaltung").classList.toggle("active",which==="verwaltung");
 }
 document.addEventListener("keydown",e=>{
-  if(!document.getElementById("stepViewer").classList.contains("hidden")){
-    if(e.key==="ArrowLeft"){e.preventDefault();changeStep(-1);}
-    if(e.key==="ArrowRight"){e.preventDefault();changeStep(1);}
-    if(e.key==="Escape"){e.preventDefault();closeStepViewer();}
-    return;
-  }
   if(e.code==="Space" && !e.target.matches("input,select")){e.preventDefault();draw();}
   if(e.key==="Enter" && currentId!==null && !document.getElementById("doneBtn").disabled) finish(false);
 });
