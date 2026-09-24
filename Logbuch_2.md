@@ -9,7 +9,7 @@
 
 Der Zufallsbild-Generator ist eine browserbasierte Anwendung für den Unterricht. Aus einer Sammlung von Zeichenanleitungen wird zufällig ein aktives Bild ausgewählt. Die Anwendung läuft ohne Installation direkt im Browser und benötigt keine externen Bibliotheken.
 
-In dieser Entwicklungsphase wurden vor allem die Bildsammlung, die Kategorien und die Bildverwaltung erweitert. Zudem wurde sichergestellt, dass alle mitgelieferten Bilder wieder aktiv starten. Zuletzt wurde die Sammlung um weitere fünf Bilder ergänzt.
+In dieser Entwicklungsphase wurden vor allem die Bildsammlung, die Kategorien und die Bildverwaltung erweitert. Zudem wurde sichergestellt, dass alle mitgelieferten Bilder wieder aktiv starten. Zuletzt wurde das Bild **Cactus** durch **Kaktus 2** ersetzt.
 
 ## 2. Ziel der Weiterentwicklung
 
@@ -31,7 +31,6 @@ Zurzeit sind 32 Bilder fest in der Anwendung registriert:
 | Bananenbaum | Pflanzen |
 | Baumhaus | Gebäude |
 | Biber | Tiere |
-| Cactus | Pflanzen |
 | Café | Gebäude, Dinge |
 | Delfin | Tiere |
 | Elefant | Tiere |
@@ -49,6 +48,7 @@ Zurzeit sind 32 Bilder fest in der Anwendung registriert:
 | Haus | Gebäude |
 | Kaffeetasse | Dinge |
 | Kaktus | Pflanzen |
+| Kaktus 2 | Pflanzen |
 | Katze | Tiere |
 | Mädchen | Figuren |
 | Muffin | Dinge |
