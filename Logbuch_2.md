@@ -9,7 +9,7 @@
 
 Der Zufallsbild-Generator ist eine browserbasierte Anwendung für den Unterricht. Aus einer Sammlung von Zeichenanleitungen wird zufällig ein aktives Bild ausgewählt. Die Anwendung läuft ohne Installation direkt im Browser und benötigt keine externen Bibliotheken.
 
-In dieser Entwicklungsphase wurden vor allem die Bildsammlung, die Kategorien und die Bildverwaltung erweitert. Zudem wurde sichergestellt, dass alle mitgelieferten Bilder wieder aktiv starten. Zuletzt wurde die Sammlung um fünf neue Bilder ergänzt.
+In dieser Entwicklungsphase wurden vor allem die Bildsammlung, die Kategorien und die Bildverwaltung erweitert. Zudem wurde sichergestellt, dass alle mitgelieferten Bilder wieder aktiv starten. Zuletzt wurde die Sammlung um weitere fünf Bilder ergänzt.
 
 ## 2. Ziel der Weiterentwicklung
 
@@ -24,20 +24,28 @@ Die bestehende Anwendung sollte so ausgebaut werden, dass:
 
 ## 3. Aktuelle Bildsammlung
 
-Zurzeit sind 20 Bilder fest in der Anwendung registriert:
+Zurzeit sind 32 Bilder fest in der Anwendung registriert:
 
 | Bild | Kategorie beziehungsweise Kategorien |
 |---|---|
 | Bananenbaum | Pflanzen |
 | Baumhaus | Gebäude |
+| Biber | Tiere |
 | Cactus | Pflanzen |
 | Café | Gebäude, Dinge |
+| Delfin | Tiere |
 | Elefant | Tiere |
 | Eis am Stiel | Dinge |
 | Faultier | Tiere |
+| Flamingo 1 | Tiere |
+| Flamingo 2 | Tiere |
 | Fliegenpilz 1 | Pflanzen |
 | Fliegenpilz 2 | Pflanzen |
+| Fussballspieler | Figuren |
 | Giraffe | Tiere |
+| Gitarre | Dinge |
+| Gitarre 2 | Dinge |
+| Handy | Dinge |
 | Haus | Gebäude |
 | Kaffeetasse | Dinge |
 | Kaktus | Pflanzen |
@@ -47,9 +55,13 @@ Zurzeit sind 20 Bilder fest in der Anwendung registriert:
 | Octopus | Tiere |
 | Palme | Pflanzen |
 | Panda | Tiere |
+| Schaf | Tiere |
+| Schildkröte | Tiere |
 | Skateboarder | Figuren |
+| Velofahrerin | Figuren |
+| Wecker | Dinge |
 
-Alle 20 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen.
+Alle 32 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen.
 
 ## 4. Kategorien
 
@@ -179,8 +191,8 @@ Der Rotton der nummerierten Zeichenschritte wird als wiederkehrende Akzentfarbe 
 
 Nach der letzten Anpassung wurde kontrolliert:
 
-- Der Ordner `Bilder/` enthält 20 Bilddateien.
-- `index.html` enthält 20 passende Bildeinträge.
+- Der Ordner `Bilder/` enthält 32 Bilddateien.
+- `index.html` enthält 32 passende Bildeinträge.
 - Die Grundinitialisierung setzt jedes Bild auf `active: true`.
 - Einzel- und Ordnerimporte legen neue Bilder ebenfalls aktiv an.
 - Durch den neuen Speicherschlüssel werden alte Inaktiv-Markierungen nicht mehr geladen.
@@ -195,6 +207,6 @@ Nach der letzten Anpassung wurde kontrolliert:
 
 ## 15. Aktueller Abschlussstand
 
-Der Zufallsbild-Generator ist einsatzbereit. Die Bildsammlung umfasst 20 Zeichenanleitungen, die Kategorien und Mehrfachzuordnungen funktionieren, und die Bilder können direkt in der Anwendung verwaltet werden.
+Der Zufallsbild-Generator ist einsatzbereit. Die Bildsammlung umfasst 32 Zeichenanleitungen, die Kategorien und Mehrfachzuordnungen funktionieren, und die Bilder können direkt in der Anwendung verwaltet werden.
 
 Alle aktuell mitgelieferten Bilder starten in dieser Version aktiv. Damit steht für den nächsten Einsatz eine vollständig zurückgesetzte Sammlung zur Verfügung.
