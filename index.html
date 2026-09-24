@@ -8,6 +8,7 @@
 :root{
   --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
   --accent:#4f46e5; --accent2:#eef2ff; --green:#15803d; --red:#b91c1c;
+  --step-red:#fd5855;
   --border:#dbe1ea; --shadow:0 8px 30px rgba(31,41,55,.10);
 }
 *{box-sizing:border-box}
@@ -29,6 +30,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .filebox{border:2px dashed #cbd5e1;border-radius:12px;padding:14px;background:#fafbff}
 .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
 .primary{background:var(--accent);color:#fff}.secondary{background:#e8edf5}.success{background:#dcfce7;color:var(--green)}.danger{background:#fee2e2;color:var(--red)}
+#tabGenerator.active,#drawBtn,#nextBtn{background:var(--step-red);color:#fff}
 .status{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:14px 0}
 .preview{min-height:360px;border:1px solid var(--border);border-radius:16px;background:#111827;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .preview img{max-width:100%;max-height:65vh;object-fit:contain}
@@ -40,8 +42,9 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .filterbar{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
 .library{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
 .card{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
-.card.inactive{opacity:.5}.thumb{height:140px;background:#111827;display:flex;align-items:center;justify-content:center}.thumb img{max-width:100%;max-height:100%;object-fit:contain}.cardbody{padding:12px}.meta{font-size:13px;color:var(--muted);margin:4px 0}.pill{display:inline-block;background:var(--accent2);color:#4338ca;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700}
+.card.inactive{opacity:.5}.thumb{height:140px;background:#111827;display:flex;align-items:center;justify-content:center}.thumb img{max-width:100%;max-height:100%;object-fit:contain}.cardbody{padding:12px}.meta{font-size:13px;color:var(--muted);margin:4px 0}.pill{display:inline-block;background:#e8edf5;color:#374151;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700}
 .notice{padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;margin-top:14px}
+.preview-notice{background:#e8edf5;border-color:#dbe1ea;color:#374151}
 .hidden{display:none!important}
 @media(max-width:800px){.grid,.filterbar{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}
 </style>
@@ -78,11 +81,10 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     <div id="currentInfo" class="status">Noch kein Bild ausgewählt.</div>
     <div class="preview" id="preview"><div class="empty">Klicke auf «Zufallsbild auswählen».</div></div>
     <div class="actions">
-      <button class="success big" id="doneBtn" disabled>✓ Bild erledigt</button>
-      <button class="secondary big" id="keepBtn" disabled>↻ Bild aktiv lassen</button>
+      <button class="secondary big" id="doneBtn" disabled>✓ Bild erledigt</button>
       <button class="primary big" id="nextBtn" disabled>🎲 Nächstes Bild</button>
     </div>
-    <div class="notice">Klicke auf das Bild, um es im Vollbild anzuzeigen. «Bild erledigt» entfernt das aktuelle Bild aus der Auswahl.</div>
+    <div class="notice preview-notice">Klicke auf das Bild, um es im Vollbild anzuzeigen. «Bild erledigt» entfernt das aktuelle Bild aus der Auswahl.</div>
   </div>
 
   <div class="panel">
@@ -117,7 +119,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
       <div class="field">
         <label for="imageCategory">Kategorie</label>
         <select id="imageCategory"></select>
-        <small>Tiere, Pflanzen, Dinge, Comics, Kawaii, Gebäude oder Fantasy.</small>
+        <small>Tiere, Pflanzen, Dinge, Figuren oder Gebäude.</small>
       </div>
     </div>
     <div class="actions">
@@ -148,30 +150,30 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 </main>
 
 <script>
-const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Kawaii","Gebäude","Fantasy"];
+const CATEGORIES = ["Tiere","Pflanzen","Dinge","Figuren","Gebäude"];
 // Neue Status-Version: Alle mitgelieferten Bilder starten einmalig wieder aktiv.
 const STORAGE_KEY = "zufallsbild_status_v2";
 const INITIAL_IMAGES = [
   {id:"bananenbaum", name:"Bananenbaum", category:"Pflanzen", image:"Bilder/Bananenbaum.jpg"},
-  {id:"baumhaus", name:"Baumhaus", category:["Gebäude","Fantasy"], image:"Bilder/Baumhaus.png"},
+  {id:"baumhaus", name:"Baumhaus", category:"Gebäude", image:"Bilder/Baumhaus.png"},
   {id:"cactus", name:"Cactus", category:"Pflanzen", image:"Bilder/Cactus.jpg"},
   {id:"cafe", name:"Café", category:["Gebäude","Dinge"], image:"Bilder/Café.png"},
   {id:"elefant", name:"Elefant", category:"Tiere", image:"Bilder/Elefant.png"},
-  {id:"eis-am-stiel", name:"Eis am Stiel", category:["Dinge","Kawaii"], image:"Bilder/Eis_am_Stiel.png"},
+  {id:"eis-am-stiel", name:"Eis am Stiel", category:"Dinge", image:"Bilder/Eis_am_Stiel.png"},
   {id:"faultier", name:"Faultier", category:"Tiere", image:"Bilder/Faultier.png"},
-  {id:"fliegenpilz-1", name:"Fliegenpilz 1", category:["Pflanzen","Kawaii"], image:"Bilder/Fliegenpilz_1.png"},
-  {id:"fliegenpilz-2", name:"Fliegenpilz 2", category:["Pflanzen","Fantasy"], image:"Bilder/Fliegenpilz_2.jpg"},
+  {id:"fliegenpilz-1", name:"Fliegenpilz 1", category:"Pflanzen", image:"Bilder/Fliegenpilz_1.png"},
+  {id:"fliegenpilz-2", name:"Fliegenpilz 2", category:"Pflanzen", image:"Bilder/Fliegenpilz_2.jpg"},
   {id:"giraffe", name:"Giraffe", category:"Tiere", image:"Bilder/Giraffe.png"},
   {id:"haus", name:"Haus", category:"Gebäude", image:"Bilder/Haus.jpg"},
   {id:"kaffeetasse", name:"Kaffeetasse", category:"Dinge", image:"Bilder/Kaffeetasse.jpg"},
-  {id:"kaktus", name:"Kaktus", category:["Pflanzen","Kawaii"], image:"Bilder/Kaktus.png"},
+  {id:"kaktus", name:"Kaktus", category:"Pflanzen", image:"Bilder/Kaktus.png"},
   {id:"katze", name:"Katze", category:"Tiere", image:"Bilder/Katze.png"},
-  {id:"maedchen", name:"Mädchen", category:"Comics", image:"Bilder/Mädchen.png"},
-  {id:"muffin", name:"Muffin", category:["Dinge","Kawaii"], image:"Bilder/Muffin.png"},
+  {id:"maedchen", name:"Mädchen", category:"Figuren", image:"Bilder/Mädchen.png"},
+  {id:"muffin", name:"Muffin", category:"Dinge", image:"Bilder/Muffin.png"},
   {id:"octopus", name:"Octopus", category:"Tiere", image:"Bilder/Octopus.jpg"},
   {id:"palme", name:"Palme", category:"Pflanzen", image:"Bilder/Palme.jpg"},
   {id:"panda", name:"Panda", category:"Tiere", image:"Bilder/Panda.png"},
-  {id:"skateboarder", name:"Skateboarder", category:"Comics", image:"Bilder/Skateboarder.png"},
+  {id:"skateboarder", name:"Skateboarder", category:"Figuren", image:"Bilder/Skateboarder.png"},
   // ============================================================
   // HIER KÖNNEN VORBEREITETE BILDER DIREKT IN DEN HTML-CODE.
   // Format:
@@ -221,7 +223,7 @@ function showImage(img){
   currentId=img.id;
   document.getElementById("preview").innerHTML=`<img src="${img.image}" alt="${escapeHtml(img.name)}">`;
   document.getElementById("currentInfo").innerHTML=`<strong>${escapeHtml(img.name)}</strong> · ${categoryBadges(img)}`;
-  ["doneBtn","keepBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=false);
+  ["doneBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=false);
 }
 function draw(){
   let pool=filteredActive();
@@ -236,11 +238,11 @@ function draw(){
   const img=pool[Math.floor(Math.random()*pool.length)];
   showImage(img);
 }
-function finish(keep){
+function finish(){
   if(currentId===null)return;
   const img=images.find(i=>i.id===currentId);
   if(!img)return;
-  img.active=keep;
+  img.active=false;
   saveStatus();
   draw();
 }
@@ -257,7 +259,7 @@ function resetAll(){
 function clearCurrent(){
   document.getElementById("preview").innerHTML='<div class="empty">Klicke auf «Zufallsbild auswählen».</div>';
   document.getElementById("currentInfo").textContent="Noch kein Bild ausgewählt.";
-  ["doneBtn","keepBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=true);
+  ["doneBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=true);
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function renderLibrary(){
@@ -389,8 +391,7 @@ document.getElementById("preview").onclick=event=>{
   if(event.target.tagName==="IMG")togglePreviewFullscreen();
 };
 document.getElementById("drawBtn").onclick=draw;
-document.getElementById("doneBtn").onclick=()=>finish(false);
-document.getElementById("keepBtn").onclick=()=>finish(true);
+document.getElementById("doneBtn").onclick=finish;
 document.getElementById("nextBtn").onclick=draw;
 document.getElementById("resetCategoryBtn").onclick=resetCategory;
 document.getElementById("resetAllBtn").onclick=resetAll;
@@ -411,7 +412,7 @@ function switchTab(which){
 }
 document.addEventListener("keydown",e=>{
   if(e.code==="Space" && !e.target.matches("input,select")){e.preventDefault();draw();}
-  if(e.key==="Enter" && currentId!==null && !document.getElementById("doneBtn").disabled) finish(false);
+  if(e.key==="Enter" && currentId!==null && !document.getElementById("doneBtn").disabled) finish();
 });
 populateCategories();loadStatus();updateAll();
 </script>

@@ -29,25 +29,25 @@ Zurzeit sind 20 Bilder fest in der Anwendung registriert:
 | Bild | Kategorie beziehungsweise Kategorien |
 |---|---|
 | Bananenbaum | Pflanzen |
-| Baumhaus | Gebäude, Fantasy |
+| Baumhaus | Gebäude |
 | Cactus | Pflanzen |
 | Café | Gebäude, Dinge |
 | Elefant | Tiere |
-| Eis am Stiel | Dinge, Kawaii |
+| Eis am Stiel | Dinge |
 | Faultier | Tiere |
-| Fliegenpilz 1 | Pflanzen, Kawaii |
-| Fliegenpilz 2 | Pflanzen, Fantasy |
+| Fliegenpilz 1 | Pflanzen |
+| Fliegenpilz 2 | Pflanzen |
 | Giraffe | Tiere |
 | Haus | Gebäude |
 | Kaffeetasse | Dinge |
-| Kaktus | Pflanzen, Kawaii |
+| Kaktus | Pflanzen |
 | Katze | Tiere |
-| Mädchen | Comics |
-| Muffin | Dinge, Kawaii |
+| Mädchen | Figuren |
+| Muffin | Dinge |
 | Octopus | Tiere |
 | Palme | Pflanzen |
 | Panda | Tiere |
-| Skateboarder | Comics |
+| Skateboarder | Figuren |
 
 Alle 20 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen.
 
@@ -58,13 +58,11 @@ Die Anwendung bietet folgende Kategorien:
 - Tiere
 - Pflanzen
 - Dinge
-- Comics
-- Kawaii
+- Figuren
 - Gebäude
-- Fantasy
 - Alle Kategorien
 
-Ein Bild kann einer einzelnen oder mehreren Kategorien zugewiesen sein. Beispielsweise gehört der Kaktus sowohl zu **Pflanzen** als auch zu **Kawaii**. Bei der Auswahl **Alle Kategorien** erscheint jedes Bild trotzdem nur einmal.
+Ein Bild kann einer einzelnen oder mehreren Kategorien zugewiesen sein. Beispielsweise gehört das Café sowohl zu **Gebäude** als auch zu **Dinge**. Bei der Auswahl **Alle Kategorien** erscheint jedes Bild trotzdem nur einmal.
 
 ## 5. Zufallsauswahl
 
@@ -74,7 +72,6 @@ Folgende Aktionen stehen zur Verfügung:
 
 - **Zufallsbild auswählen:** Zieht ein zufälliges Bild aus der aktuellen Auswahl.
 - **Bild erledigt:** Setzt das angezeigte Bild auf inaktiv und zieht anschliessend weiter.
-- **Bild aktiv lassen:** Belässt das Bild in der Auswahl und zieht weiter.
 - **Nächstes Bild:** Zieht ein weiteres Bild, ohne den Status des aktuellen Bildes zu verändern.
 - **Kategorie zurücksetzen:** Aktiviert sämtliche Bilder der ausgewählten Kategorie.
 - **Alle Bilder zurücksetzen:** Aktiviert die gesamte Bildsammlung.
@@ -173,6 +170,10 @@ Weitere verwendete Browserfunktionen sind:
 - Blob und Object-URL für den HTML-Export.
 
 Die vorbereiteten Bilder liegen als separate Dateien im Ordner `Bilder/`. Bilder, die über die Verwaltung importiert und danach exportiert werden, werden direkt in die neu erzeugte HTML-Datei eingebettet.
+
+### Farbkonzept
+
+Der Rotton der nummerierten Zeichenschritte wird als wiederkehrende Akzentfarbe eingesetzt. Der aus den Bildern ermittelte Hauptton `#FD5855` erscheint beim aktiven Reiter **Generator** sowie auf den Schaltflächen **Zufallsbild auswählen** und **Nächstes Bild**. Der Button **Bild erledigt**, die Kategorieanzeigen und der Hinweisbalken unter dem Vorschaubild verwenden passend zum Button **Bild im Vollbild** den neutralen Grauton `#E8EDF5`. Schwarz, Weiss und weitere zurückhaltende neutrale Farben bilden den Rahmen der Oberfläche.
 
 ## 13. Überprüfung
 
