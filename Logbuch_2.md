@@ -9,7 +9,7 @@
 
 Der Zufallsbild-Generator ist eine browserbasierte Anwendung für den Unterricht. Aus einer Sammlung von Zeichenanleitungen wird zufällig ein aktives Bild ausgewählt. Die Anwendung läuft ohne Installation direkt im Browser und benötigt keine externen Bibliotheken.
 
-In dieser Entwicklungsphase wurden vor allem die Bildsammlung, die Kategorien und die Bildverwaltung erweitert. Zudem wurde sichergestellt, dass alle mitgelieferten Bilder wieder aktiv starten.
+In dieser Entwicklungsphase wurden vor allem die Bildsammlung, die Kategorien und die Bildverwaltung erweitert. Zudem wurde sichergestellt, dass alle mitgelieferten Bilder wieder aktiv starten. Zuletzt wurde die Sammlung um fünf neue Bilder ergänzt.
 
 ## 2. Ziel der Weiterentwicklung
 
@@ -24,16 +24,21 @@ Die bestehende Anwendung sollte so ausgebaut werden, dass:
 
 ## 3. Aktuelle Bildsammlung
 
-Zurzeit sind 15 Bilder fest in der Anwendung registriert:
+Zurzeit sind 20 Bilder fest in der Anwendung registriert:
 
 | Bild | Kategorie beziehungsweise Kategorien |
 |---|---|
 | Bananenbaum | Pflanzen |
+| Baumhaus | Gebäude, Fantasy |
 | Cactus | Pflanzen |
+| Café | Gebäude, Dinge |
 | Elefant | Tiere |
 | Eis am Stiel | Dinge, Kawaii |
 | Faultier | Tiere |
+| Fliegenpilz 1 | Pflanzen, Kawaii |
+| Fliegenpilz 2 | Pflanzen, Fantasy |
 | Giraffe | Tiere |
+| Haus | Gebäude |
 | Kaffeetasse | Dinge |
 | Kaktus | Pflanzen, Kawaii |
 | Katze | Tiere |
@@ -44,7 +49,7 @@ Zurzeit sind 15 Bilder fest in der Anwendung registriert:
 | Panda | Tiere |
 | Skateboarder | Comics |
 
-Alle 15 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen.
+Alle 20 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen.
 
 ## 4. Kategorien
 
@@ -87,7 +92,7 @@ Der Status wird im lokalen Browserspeicher (`localStorage`) gespeichert. Dadurch
 
 ### Zurücksetzen des bisherigen Status
 
-Am 24. September 2026 wurde der Speicherschlüssel von `zufallsbild_status_v1` auf `zufallsbild_status_v2` geändert. Damit werden ältere Inaktiv-Markierungen nicht mehr übernommen. Beim ersten Öffnen dieser Version starten deshalb alle 15 mitgelieferten Bilder aktiv.
+Am 24. September 2026 wurde der Speicherschlüssel von `zufallsbild_status_v1` auf `zufallsbild_status_v2` geändert. Damit werden ältere Inaktiv-Markierungen nicht mehr übernommen. Beim ersten Öffnen dieser Version starten deshalb alle mitgelieferten Bilder aktiv. Später ergänzte Bilder besitzen zunächst ebenfalls automatisch den Status `active: true`.
 
 Nach diesem einmaligen Neustart speichert die Anwendung neue Statusänderungen weiterhin wie gewohnt.
 
@@ -173,8 +178,8 @@ Die vorbereiteten Bilder liegen als separate Dateien im Ordner `Bilder/`. Bilder
 
 Nach der letzten Anpassung wurde kontrolliert:
 
-- Der Ordner `Bilder/` enthält 15 Bilddateien.
-- `index.html` enthält 15 passende Bildeinträge.
+- Der Ordner `Bilder/` enthält 20 Bilddateien.
+- `index.html` enthält 20 passende Bildeinträge.
 - Die Grundinitialisierung setzt jedes Bild auf `active: true`.
 - Einzel- und Ordnerimporte legen neue Bilder ebenfalls aktiv an.
 - Durch den neuen Speicherschlüssel werden alte Inaktiv-Markierungen nicht mehr geladen.
@@ -189,6 +194,6 @@ Nach der letzten Anpassung wurde kontrolliert:
 
 ## 15. Aktueller Abschlussstand
 
-Der Zufallsbild-Generator ist einsatzbereit. Die Bildsammlung umfasst 15 Zeichenanleitungen, die Kategorien und Mehrfachzuordnungen funktionieren, und die Bilder können direkt in der Anwendung verwaltet werden.
+Der Zufallsbild-Generator ist einsatzbereit. Die Bildsammlung umfasst 20 Zeichenanleitungen, die Kategorien und Mehrfachzuordnungen funktionieren, und die Bilder können direkt in der Anwendung verwaltet werden.
 
 Alle aktuell mitgelieferten Bilder starten in dieser Version aktiv. Damit steht für den nächsten Einsatz eine vollständig zurückgesetzte Sammlung zur Verfügung.
