@@ -7,14 +7,15 @@
 <style>
 :root{
   --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
-  --accent:#4f46e5; --accent2:#eef2ff; --green:#15803d; --red:#b91c1c;
-  --step-red:#fd5855;
+  --accent:#fd5855; --accent2:#fff2ee; --green:#15803d; --red:#b91c1c;
   --border:#dbe1ea; --shadow:0 8px 30px rgba(31,41,55,.10);
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
 button,select,input{font:inherit}
 button{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;font-weight:700}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #975044;outline-offset:3px}
+button:disabled{background:#edf0f4!important;color:#929aa6!important;cursor:not-allowed}
 header{padding:20px 28px;background:#fff;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:20px}
 h1,h2,h3{margin:0 0 10px}
 header h1{font-size:26px}
@@ -30,9 +31,20 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .filebox{border:2px dashed #cbd5e1;border-radius:12px;padding:14px;background:#fafbff}
 .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
 .primary{background:var(--accent);color:#fff}.secondary{background:#e8edf5}.success{background:#dcfce7;color:var(--green)}.danger{background:#fee2e2;color:var(--red)}
-#tabGenerator.active,#drawBtn,#nextBtn{background:var(--step-red);color:#fff}
+.primary,.tab.active{color:#4b2520}
+.primary:hover:not(:disabled),.tab.active:hover{background:#f44744}
+.generator-controls{padding:16px 20px;margin-bottom:16px;display:flex;align-items:end;gap:16px;flex-wrap:wrap}
+.generator-controls .filterbar{flex:1 1 320px;grid-template-columns:minmax(180px,280px) auto}
+.generator-controls .actions{margin-top:0;align-items:center}
+.generator-controls .big{font-size:18px;padding:14px 20px}
+.image-panel{padding:18px 20px}
+.image-panel>.status{margin:0 0 12px}
+.reset-area{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:0 4px 20px}
+.reset-area h2{font-size:15px;color:var(--muted);margin:0}
+.reset-area .actions{margin:0}
+.reset-area button{font-size:14px;padding:10px 12px}
 .status{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:14px 0}
-.preview{min-height:360px;border:1px solid var(--border);border-radius:16px;background:#111827;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.preview{min-height:clamp(320px,48vh,560px);border:1px solid var(--border);border-radius:16px;background:#111827;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .preview img{max-width:100%;max-height:65vh;object-fit:contain}
 .preview:fullscreen{width:100vw;height:100vh;max-width:none;max-height:none;border:0;border-radius:0;background:#000}
 .preview:fullscreen img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
@@ -46,12 +58,12 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .notice{padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;margin-top:14px}
 .preview-notice{background:#e8edf5;border-color:#dbe1ea;color:#374151}
 .hidden{display:none!important}
-@media(max-width:800px){.grid,.filterbar{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}
+@media(max-width:800px){.grid,.filterbar{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}.generator-controls .filterbar{grid-template-columns:1fr}.generator-controls .status{margin:0}.generator-controls .actions{width:100%}.image-panel{padding:16px}.big{font-size:18px;padding:14px 18px}}
 </style>
 </head>
 <body>
 <header>
-  <div><h1>🎲 Zufallsbild-Generator</h1><p>Offline · für Beamer · Bilder werden direkt in dieser Datei gespeichert</p></div>
+  <div><h1>🎲 Zufallsbild-Generator</h1><p>Zufällige Bildimpulse für den Unterricht</p></div>
   <div class="tabs">
     <button id="tabGenerator" class="tab active">Generator</button>
     <button id="tabVerwaltung" class="tab">Bildverwaltung</button>
@@ -60,8 +72,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 
 <main>
 <section id="generator">
-  <div class="panel">
-    <h2>Zufallsbild auswählen</h2>
+  <div class="panel generator-controls">
     <div class="filterbar">
       <div class="field">
         <label for="categoryFilter">Kategorie</label>
@@ -77,7 +88,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     </div>
   </div>
 
-  <div class="panel">
+  <div class="panel image-panel">
     <div id="currentInfo" class="status">Noch kein Bild ausgewählt.</div>
     <div class="preview" id="preview"><div class="empty">Klicke auf «Zufallsbild auswählen».</div></div>
     <div class="actions">
@@ -87,7 +98,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     <div class="notice preview-notice">Klicke auf das Bild, um es im Vollbild anzuzeigen. «Bild erledigt» entfernt das aktuelle Bild aus der Auswahl.</div>
   </div>
 
-  <div class="panel">
+  <div class="reset-area">
     <h2>Zurücksetzen</h2>
     <div class="actions">
       <button class="secondary" id="resetCategoryBtn">Kategorie zurücksetzen</button>
