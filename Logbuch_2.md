@@ -3,7 +3,7 @@
 ## 1. Projektstand
 
 **Projekt:** Zufallsbild-Generator  
-**Stand:** 24. September 2026  
+**Stand:** 14. November 2026  
 **Hauptdatei:** `index.html`  
 **Bilderordner:** `Bilder/`
 
@@ -24,44 +24,62 @@ Die bestehende Anwendung sollte so ausgebaut werden, dass:
 
 ## 3. Aktuelle Bildsammlung
 
-Zurzeit sind 32 Bilder fest in der Anwendung registriert:
+Zurzeit sind 50 Bilder fest in der Anwendung registriert:
 
 | Bild | Kategorie beziehungsweise Kategorien |
 |---|---|
+| Babydrache | Fantasy |
 | Bananenbaum | Pflanzen |
-| Baumhaus | Gebäude |
+| Baumhaus | Gebäude, Fantasy |
 | Biber | Tiere |
 | Café | Gebäude, Dinge |
+| Campingbus | Dinge |
+| Dackel | Tiere |
 | Delfin | Tiere |
-| Elefant | Tiere |
 | Eis am Stiel | Dinge |
+| Elefant | Tiere |
+| Erdbeerpflanze | Pflanzen |
 | Faultier | Tiere |
-| Flamingo 1 | Tiere |
 | Flamingo 2 | Tiere |
-| Fliegenpilz 1 | Pflanzen |
-| Fliegenpilz 2 | Pflanzen |
-| Fussballspieler | Figuren |
+| Fliegenpilz 2 | Pflanzen, Fantasy |
+| Fussballspieler | Comics |
 | Giraffe | Tiere |
 | Gitarre | Dinge |
-| Gitarre 2 | Dinge |
 | Handy | Dinge |
 | Haus | Gebäude |
+| Heissluftballon | Dinge |
+| Iglu | Gebäude |
 | Kaffeetasse | Dinge |
-| Kaktus | Pflanzen |
 | Kaktus 2 | Pflanzen |
 | Katze | Tiere |
-| Mädchen | Figuren |
+| Lebkuchenmann | Weihnachten |
+| Leuchtturm | Gebäude |
+| Mädchen | Comics |
+| Monsterchen | Fantasy |
 | Muffin | Dinge |
-| Octopus | Tiere |
+| Oktopus | Tiere |
 | Palme | Pflanzen |
 | Panda | Tiere |
+| Pilzhaus | Gebäude, Fantasy |
+| Pinguin | Tiere |
+| Piratenschiff | Dinge |
+| Rakete | Dinge |
+| Rentier | Weihnachten |
+| Roboter | Dinge, Comics |
+| Saturn | Dinge |
 | Schaf | Tiere |
 | Schildkröte | Tiere |
-| Skateboarder | Figuren |
-| Velofahrerin | Figuren |
+| Schloss | Gebäude, Fantasy |
+| Schneemann | Weihnachten |
+| Skateboarder | Comics |
+| Sonnenblume | Pflanzen |
+| Velofahrerin | Comics |
 | Wecker | Dinge |
+| Weihnachtsbaum | Weihnachten |
+| Wichtel | Weihnachten |
+| Zauberin | Fantasy, Comics |
 
-Alle 32 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen.
+Alle 50 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen. Im Ordner liegen zusätzlich drei ältere Dateien, die nicht mehr verwendet werden: `Delfin.jpg`, `Octopus.jpg` und `Schaf.jpg`. Sie wurden durch PNG-Versionen ersetzt.
 
 ## 4. Kategorien
 
@@ -70,8 +88,10 @@ Die Anwendung bietet folgende Kategorien:
 - Tiere
 - Pflanzen
 - Dinge
-- Figuren
+- Comics (ersetzt die frühere Kategorie «Figuren»)
 - Gebäude
+- Fantasy
+- Weihnachten
 - Alle Kategorien
 
 Ein Bild kann einer einzelnen oder mehreren Kategorien zugewiesen sein. Beispielsweise gehört das Café sowohl zu **Gebäude** als auch zu **Dinge**. Bei der Auswahl **Alle Kategorien** erscheint jedes Bild trotzdem nur einmal.
@@ -83,6 +103,7 @@ Die Lehrperson wählt zuerst eine Kategorie und lässt danach ein zufälliges ak
 Folgende Aktionen stehen zur Verfügung:
 
 - **Zufallsbild auswählen:** Zieht ein zufälliges Bild aus der aktuellen Auswahl.
+- **Bild zurück:** Zeigt das vorher angezeigte Bild nochmals an. Mehrmaliges Klicken geht weiter zurück. Wurde das Bild als erledigt markiert, wird es dabei wieder aktiviert.
 - **Bild erledigt:** Setzt das angezeigte Bild auf inaktiv und zieht anschliessend weiter.
 - **Nächstes Bild:** Zieht ein weiteres Bild, ohne den Status des aktuellen Bildes zu verändern. Das gerade angezeigte Bild wird dabei nicht sofort nochmals gezogen (ausser es ist das letzte aktive Bild).
 - **Kategorie zurücksetzen:** Aktiviert sämtliche Bilder der ausgewählten Kategorie.
@@ -104,6 +125,8 @@ Der Status wird im lokalen Browserspeicher (`localStorage`) gespeichert. Dadurch
 Am 24. September 2026 wurde der Speicherschlüssel von `zufallsbild_status_v1` auf `zufallsbild_status_v2` geändert. Damit werden ältere Inaktiv-Markierungen nicht mehr übernommen. Beim ersten Öffnen dieser Version starten deshalb alle mitgelieferten Bilder aktiv. Später ergänzte Bilder besitzen zunächst ebenfalls automatisch den Status `active: true`.
 
 Nach diesem einmaligen Neustart speichert die Anwendung neue Statusänderungen weiterhin wie gewohnt.
+
+Später wurde der Schlüssel ein weiteres Mal auf `zufallsbild_status_v3` erhöht. Dies ist der aktuell verwendete Speicherschlüssel.
 
 ## 7. Bildverwaltung
 
@@ -192,8 +215,7 @@ Der Rotton der nummerierten Zeichenschritte wird als wiederkehrende Akzentfarbe 
 
 Nach der letzten Anpassung wurde kontrolliert:
 
-- Der Ordner `Bilder/` enthält 32 Bilddateien.
-- `index.html` enthält 32 passende Bildeinträge.
+- `index.html` enthält 50 Bildeinträge, und zu jedem Eintrag gibt es die passende Datei im Ordner `Bilder/` (Stand 14. November 2026).
 - Die Grundinitialisierung setzt jedes Bild auf `active: true`.
 - Einzel- und Ordnerimporte legen neue Bilder ebenfalls aktiv an.
 - Durch den neuen Speicherschlüssel werden alte Inaktiv-Markierungen nicht mehr geladen.
@@ -208,7 +230,7 @@ Nach der letzten Anpassung wurde kontrolliert:
 
 ## 15. Aktueller Abschlussstand
 
-Der Zufallsbild-Generator ist einsatzbereit. Die Bildsammlung umfasst 32 Zeichenanleitungen, die Kategorien und Mehrfachzuordnungen funktionieren, und die Bilder können direkt in der Anwendung verwaltet werden.
+Der Zufallsbild-Generator ist einsatzbereit. Die Bildsammlung umfasst 50 Zeichenanleitungen, die Kategorien und Mehrfachzuordnungen funktionieren, und die Bilder können direkt in der Anwendung verwaltet werden.
 
 Alle aktuell mitgelieferten Bilder starten in dieser Version aktiv. Damit steht für den nächsten Einsatz eine vollständig zurückgesetzte Sammlung zur Verfügung.
 
@@ -249,3 +271,46 @@ Bei einer Durchsicht des Codes wurden vier Fehler gefunden und behoben.
 ### Angepasste Hinweistexte
 
 Die Erklärungen im Bereich «Änderungen dauerhaft in dieser HTML-Datei speichern» wurden an das neue Verhalten angepasst. Sie weisen darauf hin, dass Änderungen im Browser gespeichert bleiben, für andere Geräte aber ein Export nötig ist.
+
+## 17. Weitere Anpassungen (14. November 2026)
+
+### Programm startete nicht mehr (Git-Konflikt)
+
+**Problem:** Beim Wiederherstellen eines älteren, zwischengespeicherten Stands («Stash») in Git wurden zwei Versionen von `index.html` vermischt. Git schrieb Konfliktmarkierungen (`<<<<<<<`, `=======`, `>>>>>>>`) in den Code. Der Browser konnte das Skript deshalb nicht mehr ausführen, und die Anwendung blieb leer.
+
+Zusätzlich enthielt ein Kommentar im Code die Zeichenfolge `</script>`. Der Browser liest diese Zeichenfolge auch innerhalb eines Kommentars als Ende des Skripts und schnitt den restlichen Code ab.
+
+**Lösung:** Die beiden Versionen wurden zusammengeführt:
+
+- Übernommen aus dem aktuellen Stand: alle Bilder, die Fehlerbehebungen aus Abschnitt 16 und das rote Farbkonzept.
+- Übernommen aus dem älteren Stand: die neuen Kategorien (Comics statt Figuren sowie Fantasy).
+- Nicht übernommen: der Button «Bild aktiv lassen», weil er genau dasselbe machte wie «Nächstes Bild».
+
+Der Kommentar mit `</script>` wurde umformuliert. Ausserdem zeigt die Anwendung die mitgelieferten Bilder jetzt sofort an. Im Browser gespeicherte Bilder werden kurz danach ergänzt. Die Seite bleibt dadurch nie leer, auch wenn der Browser-Speicher langsam reagiert.
+
+**Lehre:** Nach einem Stash oder Merge in Git lohnt es sich, die Dateien nach Konfliktmarkierungen zu durchsuchen und den Konflikt anschliessend in Git als gelöst zu markieren.
+
+### Bildsammlung und Kategorien erweitert
+
+Die Sammlung wurde auf 50 Bilder erweitert, unter anderem mit Weihnachtsmotiven, Gebäuden und Fantasy-Figuren (siehe Abschnitt 3). Die Kategorie «Weihnachten» kam neu dazu, und die vorübergehend eingeführte Kategorie «Kawaii» wurde wieder entfernt.
+
+### Symbole auf den Buttons entfernt
+
+Die Symbole auf den Buttons (zum Beispiel ⛶, ✓, ↻, ＋, 📁, 💾) stammten aus anderen Schriften als der Text (Arial). Dadurch wirkte die Oberfläche uneinheitlich. Sie wurden entfernt. Der farbige Würfel 🎲 bleibt im Titel und auf dem Button «Zufallsbild auswählen».
+
+Ein schwarz-weisser Würfel (⚄) wurde ausprobiert, gefiel aber weniger gut und wurde wieder durch 🎲 ersetzt.
+
+### Neuer Button «Bild zurück»
+
+Links neben «Bild erledigt» gibt es neu den Button **Bild zurück**:
+
+- Er zeigt das zuvor angezeigte Bild nochmals an. Mehrmaliges Klicken geht weiter zurück.
+- Wurde das vorherige Bild als erledigt markiert, wird es beim Zurückgehen wieder aktiviert. So lässt sich ein versehentliches «Bild erledigt» rückgängig machen.
+- Der Button ist ausgegraut, solange kein vorheriges Bild vorhanden ist.
+- Beim Wechsel der Kategorie und beim Zurücksetzen wird der Verlauf geleert.
+
+**Grenze:** Ist nach «Bild erledigt» kein aktives Bild mehr übrig, springt «Bild zurück» zum Bild davor und nicht zum zuletzt erledigten Bild.
+
+### Zähler wird sofort aktualisiert
+
+Die Anzeige «Aktiv: x von y» wurde nach «Bild erledigt» bisher nicht aktualisiert. Sie stimmt jetzt sofort.

@@ -92,6 +92,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     <div id="currentInfo" class="status">Noch kein Bild ausgewählt.</div>
     <div class="preview" id="preview"><div class="empty">Klicke auf «Zufallsbild auswählen».</div></div>
     <div class="actions">
+      <button class="secondary big" id="backBtn" disabled>Bild zurück</button>
       <button class="secondary big" id="doneBtn" disabled>Bild erledigt</button>
       <button class="primary big" id="nextBtn" disabled>Nächstes Bild</button>
     </div>
@@ -293,8 +294,15 @@ function updateStats(){
   document.getElementById("stats").textContent=`Aktiv: ${active} von ${relevant.length}`;
   document.getElementById("libraryStats").textContent=`Gesamt: ${images.length} · Aktiv: ${images.filter(i=>i.active).length} · Inaktiv: ${images.filter(i=>!i.active).length}`;
 }
-function showImage(img){
+// Verlauf der zuvor angezeigten Bilder (für «Bild zurück»).
+let verlauf=[];
+function updateBackBtn(){
+  document.getElementById("backBtn").disabled=!verlauf.length;
+}
+function showImage(img,fromBack){
+  if(!fromBack && currentId!==null && currentId!==img.id) verlauf.push(currentId);
   currentId=img.id;
+  updateBackBtn();
   document.getElementById("preview").innerHTML=`<img src="${img.image}" alt="${escapeHtml(img.name)}">`;
   document.getElementById("currentInfo").innerHTML=`<strong>${escapeHtml(img.name)}</strong> · ${categoryBadges(img)}`;
   ["doneBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=false);
@@ -320,7 +328,21 @@ function finish(){
   if(!img)return;
   img.active=false;
   saveStatus();
+  updateStats();
   draw();
+}
+function goBack(){
+  // Zum vorherigen Bild zurück; nicht mehr vorhandene (gelöschte) Bilder überspringen.
+  while(verlauf.length){
+    const prevId=verlauf.pop();
+    const img=images.find(i=>i.id===prevId);
+    if(!img) continue;
+    // Wurde es als erledigt markiert, wird es wieder aktiv.
+    if(!img.active){ img.active=true; saveStatus(); updateStats(); }
+    showImage(img,true);
+    return;
+  }
+  updateBackBtn();
 }
 function resetCategory(){
   const cat=document.getElementById("categoryFilter").value;
@@ -336,6 +358,8 @@ function clearCurrent(){
   document.getElementById("preview").innerHTML='<div class="empty">Klicke auf «Zufallsbild auswählen».</div>';
   document.getElementById("currentInfo").textContent="Noch kein Bild ausgewählt.";
   ["doneBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=true);
+  verlauf=[];
+  updateBackBtn();
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function renderLibrary(){
@@ -483,6 +507,7 @@ document.getElementById("preview").onclick=event=>{
 };
 document.getElementById("drawBtn").onclick=draw;
 document.getElementById("doneBtn").onclick=finish;
+document.getElementById("backBtn").onclick=goBack;
 document.getElementById("nextBtn").onclick=draw;
 document.getElementById("resetCategoryBtn").onclick=resetCategory;
 document.getElementById("resetAllBtn").onclick=resetAll;
