@@ -130,7 +130,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
       <div class="field">
         <label for="imageCategory">Kategorie</label>
         <select id="imageCategory"></select>
-        <small>Tiere, Pflanzen, Dinge, Comics, Kawaii, Gebäude oder Fantasy.</small>
+        <small>Tiere, Pflanzen, Dinge, Comics, Kawaii, Gebäude, Fantasy oder Weihnachten.</small>
       </div>
     </div>
     <div class="actions">
@@ -163,7 +163,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 <script>
 // Sauberer Zustand der Seite für den Export, bevor etwas dynamisch eingefüllt wird.
 const TEMPLATE_HTML = document.documentElement.outerHTML;
-const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Kawaii","Gebäude","Fantasy"];
+const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Kawaii","Gebäude","Fantasy","Weihnachten"];
 // Neue Status-Version: Alle mitgelieferten Bilder starten einmalig wieder aktiv.
 const STORAGE_KEY = "zufallsbild_status_v3";
 // Gelöschte Bilder (IDs) und selbst hinzugefügte Bilder werden im Browser gemerkt.
@@ -175,22 +175,19 @@ const INITIAL_IMAGES = [
   {id:"biber", name:"Biber", category:"Tiere", image:"Bilder/Biber.png"},
   {id:"kaktus-2", name:"Kaktus 2", category:"Pflanzen", image:"Bilder/Kaktus_2.jpg"},
   {id:"cafe", name:"Café", category:["Gebäude","Dinge"], image:"Bilder/Café.png"},
+  {id:"dackel", name:"Dackel", category:"Tiere", image:"Bilder/Dackel.png"},
   {id:"delfin", name:"Delfin", category:"Tiere", image:"Bilder/Delfin.jpg"},
   {id:"elefant", name:"Elefant", category:"Tiere", image:"Bilder/Elefant.png"},
   {id:"eis-am-stiel", name:"Eis am Stiel", category:["Dinge","Kawaii"], image:"Bilder/Eis_am_Stiel.png"},
   {id:"faultier", name:"Faultier", category:"Tiere", image:"Bilder/Faultier.png"},
-  {id:"flamingo-1", name:"Flamingo 1", category:"Tiere", image:"Bilder/Flamingo_1.png"},
   {id:"flamingo-2", name:"Flamingo 2", category:"Tiere", image:"Bilder/Flamingo_2.jpg"},
-  {id:"fliegenpilz-1", name:"Fliegenpilz 1", category:["Pflanzen","Kawaii"], image:"Bilder/Fliegenpilz_1.png"},
   {id:"fliegenpilz-2", name:"Fliegenpilz 2", category:["Pflanzen","Fantasy"], image:"Bilder/Fliegenpilz_2.jpg"},
   {id:"fussballspieler", name:"Fussballspieler", category:"Comics", image:"Bilder/Fussballspieler.jpg"},
   {id:"giraffe", name:"Giraffe", category:"Tiere", image:"Bilder/Giraffe.png"},
   {id:"gitarre", name:"Gitarre", category:"Dinge", image:"Bilder/Gitarre.png"},
-  {id:"gitarre-2", name:"Gitarre 2", category:"Dinge", image:"Bilder/Gitarre_2.jpg"},
   {id:"handy", name:"Handy", category:"Dinge", image:"Bilder/Handy.jpg"},
   {id:"haus", name:"Haus", category:"Gebäude", image:"Bilder/Haus.jpg"},
   {id:"kaffeetasse", name:"Kaffeetasse", category:"Dinge", image:"Bilder/Kaffeetasse.jpg"},
-  {id:"kaktus", name:"Kaktus", category:["Pflanzen","Kawaii"], image:"Bilder/Kaktus.png"},
   {id:"katze", name:"Katze", category:"Tiere", image:"Bilder/Katze.png"},
   {id:"maedchen", name:"Mädchen", category:"Comics", image:"Bilder/Mädchen.png"},
   {id:"muffin", name:"Muffin", category:["Dinge","Kawaii"], image:"Bilder/Muffin.png"},
@@ -202,6 +199,16 @@ const INITIAL_IMAGES = [
   {id:"skateboarder", name:"Skateboarder", category:"Comics", image:"Bilder/Skateboarder.png"},
   {id:"velofahrerin", name:"Velofahrerin", category:"Comics", image:"Bilder/Velofahrerin.png"},
   {id:"wecker", name:"Wecker", category:"Dinge", image:"Bilder/Wecker.jpg"},
+  {id:"wichtel", name:"Wichtel", category:"Weihnachten", image:"Bilder/Wichtel.png"},
+  {id:"rentier", name:"Rentier", category:"Weihnachten", image:"Bilder/Rentier.png"},
+  {id:"schneemann", name:"Schneemann", category:"Weihnachten", image:"Bilder/Schneemann.png"},
+  {id:"lebkuchenmann", name:"Lebkuchenmann", category:"Weihnachten", image:"Bilder/Lebkuchenmann.png"},
+  {id:"weihnachtsbaum", name:"Weihnachtsbaum", category:"Weihnachten", image:"Bilder/Weihnachtsbaum.png"},
+  {id:"schloss", name:"Schloss", category:["Gebäude","Fantasy","Kawaii"], image:"Bilder/Schloss.png"},
+  {id:"leuchtturm", name:"Leuchtturm", category:["Gebäude","Kawaii"], image:"Bilder/Leuchtturm.png"},
+  {id:"iglu", name:"Iglu", category:["Gebäude","Kawaii"], image:"Bilder/Iglu.png"},
+  {id:"babydrache", name:"Babydrache", category:["Fantasy","Kawaii"], image:"Bilder/Babydrache.png"},
+  {id:"monsterchen", name:"Monsterchen", category:["Fantasy","Kawaii"], image:"Bilder/Monsterchen.png"},
   // ============================================================
   // HIER KÖNNEN VORBEREITETE BILDER DIREKT IN DEN HTML-CODE.
   // Format:
