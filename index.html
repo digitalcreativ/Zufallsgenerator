@@ -139,20 +139,25 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 
   <div class="panel">
     <h2>Änderungen dauerhaft in dieser HTML-Datei speichern</h2>
-    <p>Browser können eine HTML-Datei nicht selbst überschreiben. Nach dem Hinzufügen oder Ändern von Bildern kannst du hier eine neue HTML-Datei mit deiner aktuellen Bildsammlung erzeugen.</p>
+    <p>Hinzugefügte und gelöschte Bilder werden automatisch in diesem Browser gespeichert und bleiben auch nach dem Neuladen erhalten. Browser können die HTML-Datei aber nicht selbst überschreiben. Damit die Änderungen auch auf anderen Geräten oder in anderen Browsern verfügbar sind, erzeugst du hier eine neue HTML-Datei mit deiner aktuellen Bildsammlung.</p>
     <div class="actions">
       <button class="primary" id="exportBtn">💾 Fertige HTML-Datei erstellen</button>
       <button class="secondary" id="clearStorageBtn">Browser-Speicher für diese Datei löschen</button>
     </div>
-    <div class="notice">Tipp: Verwende nach Änderungen immer «Fertige HTML-Datei erstellen» und öffne danach die neu erzeugte Datei. So sind die Bilder tatsächlich in der HTML-Datei enthalten.</div>
+    <div class="notice">Tipp: Wenn du den Generator auf einem anderen Gerät (z. B. am Beamer-PC) verwenden willst, erstelle zuerst eine fertige HTML-Datei und kopiere sie zusammen mit dem Ordner «Bilder» dorthin.</div>
   </div>
 </section>
 </main>
 
 <script>
+// Sauberer Zustand der Seite für den Export, bevor etwas dynamisch eingefüllt wird.
+const TEMPLATE_HTML = document.documentElement.outerHTML;
 const CATEGORIES = ["Tiere","Pflanzen","Dinge","Figuren","Gebäude"];
 // Neue Status-Version: Alle mitgelieferten Bilder starten einmalig wieder aktiv.
 const STORAGE_KEY = "zufallsbild_status_v3";
+// Gelöschte Bilder (IDs) und selbst hinzugefügte Bilder werden im Browser gemerkt.
+const DELETED_KEY = "zufallsbild_geloescht_v1";
+const DB_NAME = "zufallsbild_db", DB_STORE = "bilder";
 const INITIAL_IMAGES = [
   {id:"bananenbaum", name:"Bananenbaum", category:"Pflanzen", image:"Bilder/Bananenbaum.jpg"},
   {id:"baumhaus", name:"Baumhaus", category:"Gebäude", image:"Bilder/Baumhaus.png"},
@@ -204,8 +209,36 @@ function loadStatus(){
 }
 function saveStatus(){
   const s={}; images.forEach(i=>s[i.id]=i.active);
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
+  try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(s)); }catch(e){}
 }
+function loadDeleted(){
+  try{ return new Set(JSON.parse(localStorage.getItem(DELETED_KEY)||"[]")); }catch(e){ return new Set(); }
+}
+function saveDeleted(set){
+  try{ localStorage.setItem(DELETED_KEY,JSON.stringify([...set])); }catch(e){}
+}
+// --- IndexedDB: dauerhafter Browser-Speicher für selbst hinzugefügte Bilder ---
+function openDb(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded=()=>req.result.createObjectStore(DB_STORE,{keyPath:"id"});
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function dbRun(mode,action){
+  const db=await openDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_STORE,mode);
+    const req=action(tx.objectStore(DB_STORE));
+    tx.oncomplete=()=>{db.close();resolve(req.result);};
+    tx.onerror=tx.onabort=()=>{db.close();reject(tx.error);};
+  });
+}
+const dbGetAll=()=>dbRun("readonly",s=>s.getAll());
+const dbPut=img=>dbRun("readwrite",s=>s.put({id:img.id,name:img.name,category:img.category,image:img.image}));
+const dbDelete=id=>dbRun("readwrite",s=>s.delete(id));
+const dbClear=()=>dbRun("readwrite",s=>s.clear());
 function populateCategories(){
   const filter=document.getElementById("categoryFilter");
   filter.innerHTML='<option value="Alle">Alle Kategorien</option>'+CATEGORIES.map(c=>`<option>${c}</option>`).join("");
@@ -247,6 +280,8 @@ function draw(){
     }else alert("Für diese Auswahl sind keine Bilder vorhanden.");
     return;
   }
+  // Das aktuell angezeigte Bild nicht gleich nochmals ziehen (ausser es ist das einzige).
+  if(pool.length>1) pool=pool.filter(i=>i.id!==currentId);
   const img=pool[Math.floor(Math.random()*pool.length)];
   showImage(img);
 }
@@ -297,6 +332,8 @@ function removeImage(id){
   const i=images.find(x=>x.id===id); if(!i)return;
   if(confirm(`«${i.name}» wirklich löschen?`)){
     images=images.filter(x=>x.id!==id);
+    const deleted=loadDeleted(); deleted.add(id); saveDeleted(deleted);
+    dbDelete(id).catch(()=>{});
     if(currentId===id){currentId=null;clearCurrent();}
     saveStatus();updateAll();
   }
@@ -333,11 +370,16 @@ async function addImage(){
       if(!blob.type.startsWith("image/")) throw new Error("Die URL verweist nicht auf eine Bilddatei.");
       image=await dataUrlFromBlob(blob);
     }
-    images.push({id:crypto.randomUUID(),name,category,image,active:true});
+    const newImage={id:crypto.randomUUID(),name,category,image,active:true};
+    images.push(newImage);
+    let stored=true;
+    try{ await dbPut(newImage); }catch(e){ stored=false; }
     document.getElementById("imageFile").value="";
     document.getElementById("imageUrl").value="";
     document.getElementById("imageName").value="";
-    msg.innerHTML='<div class="notice">✓ Bild wurde zur Sammlung hinzugefügt.</div>';
+    msg.innerHTML=stored
+      ? '<div class="notice">✓ Bild wurde zur Sammlung hinzugefügt und in diesem Browser gespeichert.</div>'
+      : '<div class="notice">✓ Bild wurde hinzugefügt, konnte aber nicht im Browser gespeichert werden. Erstelle jetzt eine fertige HTML-Datei, sonst geht es beim Neuladen verloren.</div>';
     saveStatus();updateAll();
   }catch(error){
     const detail=error instanceof TypeError ? "Die Website erlaubt keinen direkten Download durch den Browser (CORS). Lade das Bild zuerst lokal herunter und wähle es dann als Datei aus." : error.message;
@@ -358,6 +400,7 @@ async function importFolder(){
   const existingNames=new Set(images.map(image=>image.name.trim().toLocaleLowerCase("de")));
   let added=0;
   let skipped=0;
+  let storeFailed=false;
   msg.innerHTML='<div class="notice">Bilder werden eingelesen …</div>';
 
   for(const file of files){
@@ -368,7 +411,9 @@ async function importFolder(){
       continue;
     }
     const image=await dataUrlFromBlob(file);
-    images.push({id:crypto.randomUUID(),name,category,image,active:true});
+    const newImage={id:crypto.randomUUID(),name,category,image,active:true};
+    images.push(newImage);
+    try{ await dbPut(newImage); }catch(e){ storeFailed=true; }
     existingNames.add(key);
     added++;
   }
@@ -376,15 +421,20 @@ async function importFolder(){
   input.value="";
   saveStatus();
   updateAll();
-  msg.innerHTML=`<div class="notice">✓ ${added} Bild${added===1?"":"er"} importiert${skipped?` · ${skipped} bereits vorhanden oder übersprungen`:""}. Erstelle nun eine fertige HTML-Datei, um die eingebetteten Bilder dauerhaft zu speichern.</div>`;
+  const hint=storeFailed
+    ? "Achtung: Nicht alle Bilder konnten im Browser gespeichert werden. Erstelle jetzt eine fertige HTML-Datei, sonst gehen sie beim Neuladen verloren."
+    : "Die Bilder sind in diesem Browser gespeichert. Für andere Geräte erstelle eine fertige HTML-Datei.";
+  msg.innerHTML=`<div class="notice">✓ ${added} Bild${added===1?"":"er"} importiert${skipped?` · ${skipped} bereits vorhanden oder übersprungen`:""}. ${hint}</div>`;
 }
 
 function exportHtml(){
   const cleanImages=images.map(i=>({id:i.id,name:i.name,category:i.category,image:i.image}));
-  let html=document.documentElement.outerHTML;
-  const replacement=`const INITIAL_IMAGES = ${JSON.stringify(cleanImages)};`;
-  html=html.replace(/const INITIAL_IMAGES = \[[\s\S]*?\];/,replacement);
-  html=html.replace(/<script>[\s\S]*?<\/script>/,m=>m);
+  // Vom sauberen Ausgangszustand ausgehen, nicht von der aktuell angezeigten Seite
+  // (sonst wären Bilder aus Vorschau und Bildsammlung mehrfach in der Datei).
+  // "<" wird maskiert, damit Namen wie "</script>" den Code nicht beschädigen.
+  const json=JSON.stringify(cleanImages).replace(/</g,"\\u003c");
+  const replacement=`const INITIAL_IMAGES = ${json};`;
+  const html=TEMPLATE_HTML.replace(/const INITIAL_IMAGES = \[[\s\S]*?\];/,()=>replacement);
   const blob=new Blob(["<!DOCTYPE html>\n"+html],{type:"text/html;charset=utf-8"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Zufallsbild-Generator.html";a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -412,7 +462,12 @@ document.getElementById("addBtn").onclick=addImage;
 document.getElementById("importFolderBtn").onclick=()=>document.getElementById("folderInput").click();
 document.getElementById("folderInput").onchange=importFolder;
 document.getElementById("exportBtn").onclick=exportHtml;
-document.getElementById("clearStorageBtn").onclick=()=>{if(confirm("Den gespeicherten Verwendungsstatus löschen?")){localStorage.removeItem(STORAGE_KEY);images.forEach(i=>i.active=true);updateAll();}};
+document.getElementById("clearStorageBtn").onclick=async()=>{
+  if(!confirm("Alle im Browser gespeicherten Daten löschen?\n\n– Erledigt-Status wird zurückgesetzt\n– Hinzugefügte, nicht exportierte Bilder gehen verloren\n– Gelöschte Bilder erscheinen wieder"))return;
+  try{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(DELETED_KEY); }catch(e){}
+  try{ await dbClear(); }catch(e){}
+  location.reload();
+};
 document.getElementById("fullscreenBtn").onclick=togglePreviewFullscreen;
 document.getElementById("tabGenerator").onclick=()=>switchTab("generator");
 document.getElementById("tabVerwaltung").onclick=()=>switchTab("verwaltung");
@@ -424,9 +479,28 @@ function switchTab(which){
 }
 document.addEventListener("keydown",e=>{
   if(e.code==="Space" && !e.target.matches("input,select")){e.preventDefault();draw();}
-  if(e.key==="Enter" && currentId!==null && !document.getElementById("doneBtn").disabled) finish();
+  if(e.key==="Enter" && !e.target.matches("input,select,textarea") && currentId!==null && !document.getElementById("doneBtn").disabled){
+    // Verhindert, dass Enter zusätzlich den gerade ausgewählten Button auslöst.
+    e.preventDefault();
+    finish();
+  }
 });
-populateCategories();loadStatus();updateAll();
+async function init(){
+  populateCategories();
+  // Selbst hinzugefügte Bilder aus dem Browser-Speicher ergänzen
+  // (IDs, die schon in der Datei stehen, z. B. nach einem Export, werden übersprungen).
+  try{
+    const stored=await dbGetAll();
+    const known=new Set(images.map(i=>i.id));
+    stored.forEach(img=>{ if(!known.has(img.id)) images.push({...img,active:true}); });
+  }catch(e){}
+  // Gelöschte Bilder ausblenden.
+  const deleted=loadDeleted();
+  images=images.filter(i=>!deleted.has(i.id));
+  loadStatus();
+  updateAll();
+}
+init();
 </script>
 </body>
 </html>
