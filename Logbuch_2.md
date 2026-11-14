@@ -79,7 +79,7 @@ Zurzeit sind 50 Bilder fest in der Anwendung registriert:
 | Wichtel | Weihnachten |
 | Zauberin | Fantasy, Comics |
 
-Alle 50 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen. Im Ordner liegen zusätzlich drei ältere Dateien, die nicht mehr verwendet werden: `Delfin.jpg`, `Octopus.jpg` und `Schaf.jpg`. Sie wurden durch PNG-Versionen ersetzt.
+Alle 50 dazugehörigen Dateien befinden sich im Ordner `Bilder/` und sind in `index.html` eingetragen. Die drei älteren, nicht mehr verwendeten Dateien `Delfin.jpg`, `Octopus.jpg` und `Schaf.jpg` wurden gelöscht. Sie sind durch PNG-Versionen ersetzt.
 
 ## 4. Kategorien
 
@@ -109,7 +109,9 @@ Folgende Aktionen stehen zur Verfügung:
 - **Kategorie zurücksetzen:** Aktiviert sämtliche Bilder der ausgewählten Kategorie.
 - **Alle Bilder zurücksetzen:** Aktiviert die gesamte Bildsammlung.
 
-Sind alle Bilder einer Kategorie erledigt, weist die Anwendung darauf hin, dass die Kategorie zurückgesetzt werden kann.
+Sind alle Bilder einer Kategorie erledigt, erscheint direkt in der Bildfläche eine Meldung mit dem Button **Kategorie zurücksetzen** (bzw. **Alle Bilder zurücksetzen**).
+
+Zusätzlich steht ein **Zeichen-Timer** zur Verfügung (siehe Abschnitt 18).
 
 ## 6. Aktiv- und Inaktivstatus
 
@@ -309,8 +311,59 @@ Links neben «Bild erledigt» gibt es neu den Button **Bild zurück**:
 - Der Button ist ausgegraut, solange kein vorheriges Bild vorhanden ist.
 - Beim Wechsel der Kategorie und beim Zurücksetzen wird der Verlauf geleert.
 
-**Grenze:** Ist nach «Bild erledigt» kein aktives Bild mehr übrig, springt «Bild zurück» zum Bild davor und nicht zum zuletzt erledigten Bild.
+~~**Grenze:** Ist nach «Bild erledigt» kein aktives Bild mehr übrig, springt «Bild zurück» zum Bild davor und nicht zum zuletzt erledigten Bild.~~ (Behoben, siehe Abschnitt 18.)
 
 ### Zähler wird sofort aktualisiert
 
 Die Anzeige «Aktiv: x von y» wurde nach «Bild erledigt» bisher nicht aktualisiert. Sie stimmt jetzt sofort.
+
+### Fehler im Button «Bild zurück» behoben
+
+Der Button funktionierte zuerst nicht: Beim Zurückgehen wurde der ganze Verlauf auf einmal gelöscht statt nur der letzte Eintrag. Der Fehler wurde korrigiert und mit einem automatischen Klicktest überprüft.
+
+## 18. Zeichen-Timer und Meldungen (14. November 2026)
+
+### Zeichen-Timer
+
+Unter den Buttons beim Bild befindet sich die neue Zeile **Zeichenzeit**:
+
+- Wählbar sind 3, 5, 10, 15 oder 20 Minuten (Voreinstellung: 5 Minuten).
+- **Timer starten** startet den Countdown. Der Button wechselt danach zu **Pause** bzw. **Weiter**.
+- **Timer zurücksetzen** blendet die Anzeige aus. Dasselbe geschieht, wenn eine andere Zeit gewählt wird.
+- Die Restzeit erscheint gross **rechts unten** im Bild. So bleibt der Titel der Zeichenanleitung oben frei. Das Feld ist dunkel mit dickem weissem Rand und Schatten und ist deshalb auf hellen und dunklen Bildern gut sichtbar.
+- Im Vollbildmodus wird der Timer noch grösser angezeigt.
+- Während einer Pause wird die Anzeige blasser.
+- Ist die Zeit abgelaufen, erscheint **«Zeit ist um!»** auf rotem Hintergrund und pulsiert einige Male. Bewusst wird kein Ton abgespielt.
+- Der Timer läuft weiter, wenn ein neues Bild gezogen wird.
+
+Technisch berechnet der Timer die Restzeit aus der Endzeit (`Date.now()`). Dadurch bleibt er auch dann genau, wenn der Browser kurz beschäftigt ist.
+
+### Meldungen in der Seite statt Popup-Fenster
+
+Bisher erschienen Hinweise wie «Alle Bilder wurden verwendet» als graues Popup-Fenster des Browsers (`alert`). Auf dem Beamer wirkte das störend.
+
+Neu gilt:
+
+- Die Meldung erscheint in weisser Schrift direkt in der Bildfläche.
+- Darunter steht ein Button **Kategorie zurücksetzen** bzw. **Alle Bilder zurücksetzen**.
+- «Bild erledigt» und «Nächstes Bild» sind dabei ausgegraut.
+- Auch der Hinweis «Vollbildmodus wird nicht unterstützt» erscheint als Text statt als Popup.
+
+### Grenze von «Bild zurück» behoben
+
+Wird das letzte Bild einer Kategorie erledigt, führt **Bild zurück** jetzt zu genau diesem Bild zurück und aktiviert es wieder.
+
+### Aufräumen
+
+Die nicht mehr verwendeten Dateien `Delfin.jpg`, `Octopus.jpg` und `Schaf.jpg` wurden aus dem Ordner `Bilder/` gelöscht.
+
+### Überprüfung
+
+Mit einem automatischen Klicktest in Edge wurde geprüft:
+
+- Nach dem Erledigen aller 5 Weihnachtsbilder erscheint die Meldung mit dem Reset-Button.
+- «Bild zurück» holt das letzte erledigte Bild zurück (Aktiv: 1 von 5).
+- Der Reset-Button aktiviert die Kategorie wieder (Aktiv: 5 von 5).
+- Der Timer startet, pausiert, läuft ab («Zeit ist um!») und lässt sich zurücksetzen.
+
+Die neue Grösse und Position des Timers konnten nicht automatisch geprüft werden. Sie müssen im Browser und am Beamer angeschaut werden.

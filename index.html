@@ -49,7 +49,20 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .preview:fullscreen{width:100vw;height:100vh;max-width:none;max-height:none;border:0;border-radius:0;background:#000}
 .preview:fullscreen img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
 .preview img{cursor:zoom-in}
+.preview{position:relative}
+#previewContent{display:contents}
 .empty{color:#cbd5e1;text-align:center;padding:40px}
+.empty-message{color:#fff;text-align:center;padding:40px;max-width:560px}
+.empty-message p{font-size:22px;line-height:1.4;margin:0 0 20px}
+/* Zeichen-Timer */
+.timerbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.timerbar label{font-weight:700}
+.timerbar select{width:auto}
+.timer-overlay{position:absolute;bottom:18px;right:18px;background:#111827;color:#fff;font-size:clamp(44px,6vw,72px);font-weight:700;line-height:1;padding:14px 26px;border:4px solid #fff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.45);font-variant-numeric:tabular-nums;pointer-events:none;transform-origin:bottom right}
+.preview:fullscreen .timer-overlay{font-size:clamp(72px,9vw,140px);bottom:36px;right:36px;padding:20px 40px;border-width:6px;border-radius:26px}
+.timer-overlay.paused{opacity:.55}
+.timer-overlay.done{background:var(--step-red,#fd5855);animation:timerPulse 1s ease-in-out 6}
+@keyframes timerPulse{50%{transform:scale(1.1)}}
 .big{font-size:22px;padding:18px 26px}
 .filterbar{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
 .library{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
@@ -90,11 +103,23 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 
   <div class="panel image-panel">
     <div id="currentInfo" class="status">Noch kein Bild ausgewählt.</div>
-    <div class="preview" id="preview"><div class="empty">Klicke auf «Zufallsbild auswählen».</div></div>
+    <div class="preview" id="preview"><div id="previewContent"><div class="empty">Klicke auf «Zufallsbild auswählen».</div></div><div id="timerOverlay" class="timer-overlay hidden"></div></div>
     <div class="actions">
       <button class="secondary big" id="backBtn" disabled>Bild zurück</button>
       <button class="secondary big" id="doneBtn" disabled>Bild erledigt</button>
       <button class="primary big" id="nextBtn" disabled>Nächstes Bild</button>
+    </div>
+    <div class="timerbar">
+      <label for="timerSelect">Zeichenzeit</label>
+      <select id="timerSelect">
+        <option value="3">3 Minuten</option>
+        <option value="5" selected>5 Minuten</option>
+        <option value="10">10 Minuten</option>
+        <option value="15">15 Minuten</option>
+        <option value="20">20 Minuten</option>
+      </select>
+      <button class="secondary" id="timerStartBtn">Timer starten</button>
+      <button class="secondary" id="timerResetBtn" disabled>Timer zurücksetzen</button>
     </div>
     <div class="notice preview-notice">Klicke auf das Bild, um es im Vollbild anzuzeigen. «Bild erledigt» entfernt das aktuelle Bild aus der Auswahl.</div>
   </div>
@@ -303,7 +328,7 @@ function showImage(img,fromBack){
   if(!fromBack && currentId!==null && currentId!==img.id) verlauf.push(currentId);
   currentId=img.id;
   updateBackBtn();
-  document.getElementById("preview").innerHTML=`<img src="${img.image}" alt="${escapeHtml(img.name)}">`;
+  document.getElementById("previewContent").innerHTML=`<img src="${img.image}" alt="${escapeHtml(img.name)}">`;
   document.getElementById("currentInfo").innerHTML=`<strong>${escapeHtml(img.name)}</strong> · ${categoryBadges(img)}`;
   ["doneBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=false);
 }
@@ -313,14 +338,32 @@ function draw(){
     const cat=document.getElementById("categoryFilter").value;
     const relevant=images.filter(i=>belongsToCategory(i,cat));
     if(relevant.length && relevant.every(i=>!i.active)){
-      alert(cat==="Alle" ? "Alle Bilder wurden verwendet. Die Liste kann jetzt neu gestartet werden." : `Alle Bilder der Kategorie «${cat}» wurden verwendet. Bitte setze die Kategorie zurück.`);
-    }else alert("Für diese Auswahl sind keine Bilder vorhanden.");
+      showEmptyMessage(
+        cat==="Alle" ? "Alle Bilder wurden verwendet." : `Alle Bilder der Kategorie «${cat}» wurden verwendet.`,
+        cat==="Alle" ? "Alle Bilder zurücksetzen" : "Kategorie zurücksetzen"
+      );
+    }else showEmptyMessage("Für diese Auswahl sind keine Bilder vorhanden.");
     return;
   }
   // Das aktuell angezeigte Bild nicht gleich nochmals ziehen (ausser es ist das einzige).
   if(pool.length>1) pool=pool.filter(i=>i.id!==currentId);
   const img=pool[Math.floor(Math.random()*pool.length)];
   showImage(img);
+}
+// Meldung direkt in der Bildfläche statt eines Browser-Popups.
+// Optional mit Button zum Zurücksetzen.
+function showEmptyMessage(text,resetLabel){
+  // Das zuletzt angezeigte Bild bleibt über «Bild zurück» erreichbar.
+  if(currentId!==null){ verlauf.push(currentId); currentId=null; }
+  updateBackBtn();
+  document.getElementById("previewContent").innerHTML=
+    `<div class="empty-message"><p>${escapeHtml(text)}</p>`+
+    (resetLabel?`<button class="primary big" id="emptyResetBtn">${escapeHtml(resetLabel)}</button>`:"")+
+    `</div>`;
+  document.getElementById("currentInfo").textContent="Kein Bild ausgewählt.";
+  ["doneBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=true);
+  const btn=document.getElementById("emptyResetBtn");
+  if(btn) btn.onclick=resetCategory;
 }
 function finish(){
   if(currentId===null)return;
@@ -355,7 +398,7 @@ function resetAll(){
   saveStatus(); currentId=null; clearCurrent(); updateAll();
 }
 function clearCurrent(){
-  document.getElementById("preview").innerHTML='<div class="empty">Klicke auf «Zufallsbild auswählen».</div>';
+  document.getElementById("previewContent").innerHTML='<div class="empty">Klicke auf «Zufallsbild auswählen».</div>';
   document.getElementById("currentInfo").textContent="Noch kein Bild ausgewählt.";
   ["doneBtn","nextBtn"].forEach(id=>document.getElementById(id).disabled=true);
   verlauf=[];
@@ -498,7 +541,7 @@ async function togglePreviewFullscreen(){
     if(document.fullscreenElement) await document.exitFullscreen();
     else await preview.requestFullscreen();
   }catch(e){
-    alert("Der Bild-Vollbildmodus wird von diesem Browser nicht unterstützt.");
+    document.getElementById("currentInfo").textContent="Der Vollbildmodus wird von diesem Browser nicht unterstützt.";
   }
 }
 
@@ -508,6 +551,58 @@ document.getElementById("preview").onclick=event=>{
 document.getElementById("drawBtn").onclick=draw;
 document.getElementById("doneBtn").onclick=finish;
 document.getElementById("backBtn").onclick=goBack;
+
+// --- Zeichen-Timer ---
+// Zustände: "idle" (bereit), "running" (läuft), "paused" (pausiert), "done" (abgelaufen)
+let timerState="idle", timerRemaining=0, timerEnd=0, timerInterval=null;
+function formatTime(ms){
+  const s=Math.ceil(ms/1000);
+  return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+}
+function renderTimer(){
+  const overlay=document.getElementById("timerOverlay");
+  const startBtn=document.getElementById("timerStartBtn");
+  overlay.classList.toggle("hidden",timerState==="idle");
+  overlay.classList.toggle("paused",timerState==="paused");
+  overlay.classList.toggle("done",timerState==="done");
+  if(timerState==="done") overlay.textContent="Zeit ist um!";
+  else if(timerState==="running") overlay.textContent=formatTime(Math.max(0,timerEnd-Date.now()));
+  else overlay.textContent=formatTime(timerRemaining);
+  startBtn.textContent=timerState==="running"?"Pause":timerState==="paused"?"Weiter":"Timer starten";
+  document.getElementById("timerResetBtn").disabled=timerState==="idle";
+}
+function timerTick(){
+  if(Date.now()>=timerEnd){
+    clearInterval(timerInterval); timerInterval=null;
+    timerState="done"; timerRemaining=0;
+  }
+  renderTimer();
+}
+function timerStartPause(){
+  if(timerState==="running"){
+    timerRemaining=Math.max(0,timerEnd-Date.now());
+    clearInterval(timerInterval); timerInterval=null;
+    timerState="paused";
+  }else{
+    if(timerState==="idle"||timerState==="done"){
+      timerRemaining=Number(document.getElementById("timerSelect").value)*60000;
+    }
+    timerEnd=Date.now()+timerRemaining;
+    clearInterval(timerInterval);
+    timerInterval=setInterval(timerTick,250);
+    timerState="running";
+  }
+  renderTimer();
+}
+function timerReset(){
+  clearInterval(timerInterval); timerInterval=null;
+  timerState="idle"; timerRemaining=0;
+  renderTimer();
+}
+document.getElementById("timerStartBtn").onclick=timerStartPause;
+document.getElementById("timerResetBtn").onclick=timerReset;
+// Neue Zeit gewählt: einen laufenden oder abgelaufenen Timer zurücksetzen.
+document.getElementById("timerSelect").onchange=timerReset;
 document.getElementById("nextBtn").onclick=draw;
 document.getElementById("resetCategoryBtn").onclick=resetCategory;
 document.getElementById("resetAllBtn").onclick=resetAll;
