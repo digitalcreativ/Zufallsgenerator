@@ -73,7 +73,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     </div>
     <div class="actions">
       <button class="primary big" id="drawBtn">🎲 Zufallsbild auswählen</button>
-      <button class="secondary" id="fullscreenBtn">⛶ Bild im Vollbild</button>
+      <button class="secondary" id="fullscreenBtn">Bild im Vollbild</button>
     </div>
   </div>
 
@@ -81,8 +81,8 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     <div id="currentInfo" class="status">Noch kein Bild ausgewählt.</div>
     <div class="preview" id="preview"><div class="empty">Klicke auf «Zufallsbild auswählen».</div></div>
     <div class="actions">
-      <button class="secondary big" id="doneBtn" disabled>✓ Bild erledigt</button>
-      <button class="primary big" id="nextBtn" disabled>🎲 Nächstes Bild</button>
+      <button class="secondary big" id="doneBtn" disabled>Bild erledigt</button>
+      <button class="primary big" id="nextBtn" disabled>Nächstes Bild</button>
     </div>
     <div class="notice preview-notice">Klicke auf das Bild, um es im Vollbild anzuzeigen. «Bild erledigt» entfernt das aktuelle Bild aus der Auswahl.</div>
   </div>
@@ -90,8 +90,8 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
   <div class="panel">
     <h2>Zurücksetzen</h2>
     <div class="actions">
-      <button class="secondary" id="resetCategoryBtn">↻ Kategorie zurücksetzen</button>
-      <button class="danger" id="resetAllBtn">↻ Alle Bilder zurücksetzen</button>
+      <button class="secondary" id="resetCategoryBtn">Kategorie zurücksetzen</button>
+      <button class="danger" id="resetAllBtn">Alle Bilder zurücksetzen</button>
     </div>
   </div>
 </section>
@@ -123,8 +123,8 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
       </div>
     </div>
     <div class="actions">
-      <button class="primary" id="addBtn">＋ Bild zur Sammlung hinzufügen</button>
-      <button class="secondary" id="importFolderBtn">📁 Bilderordner einlesen</button>
+      <button class="primary" id="addBtn">Bild zur Sammlung hinzufügen</button>
+      <button class="secondary" id="importFolderBtn">Bilderordner einlesen</button>
       <input id="folderInput" class="hidden" type="file" accept="image/*" multiple webkitdirectory directory>
     </div>
     <div class="notice">Beim Ordnerimport erhalten alle neuen Bilder die oben gewählte Kategorie. Der Dateiname wird als Bildname verwendet; bereits vorhandene Namen werden übersprungen.</div>
@@ -141,7 +141,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     <h2>Änderungen dauerhaft in dieser HTML-Datei speichern</h2>
     <p>Hinzugefügte und gelöschte Bilder werden automatisch in diesem Browser gespeichert und bleiben auch nach dem Neuladen erhalten. Browser können die HTML-Datei aber nicht selbst überschreiben. Damit die Änderungen auch auf anderen Geräten oder in anderen Browsern verfügbar sind, erzeugst du hier eine neue HTML-Datei mit deiner aktuellen Bildsammlung.</p>
     <div class="actions">
-      <button class="primary" id="exportBtn">💾 Fertige HTML-Datei erstellen</button>
+      <button class="primary" id="exportBtn">Fertige HTML-Datei erstellen</button>
       <button class="secondary" id="clearStorageBtn">Browser-Speicher für diese Datei löschen</button>
     </div>
     <div class="notice">Tipp: Wenn du den Generator auf einem anderen Gerät (z. B. am Beamer-PC) verwenden willst, erstelle zuerst eine fertige HTML-Datei und kopiere sie zusammen mit dem Ordner «Bilder» dorthin.</div>
@@ -318,7 +318,7 @@ function renderLibrary(){
       <div class="cardbody">
         <strong>${escapeHtml(i.name)}</strong>
         <div class="meta">${categoryBadges(i)}</div>
-        <div class="meta">${i.active?"● aktiv":"○ inaktiv"}</div>
+        <div class="meta">${i.active?"aktiv":"inaktiv"}</div>
         <button class="${i.active?"secondary":"success"}" onclick="toggleActive('${i.id}')">${i.active?"Als inaktiv markieren":"Aktivieren"}</button>
         <button class="danger" onclick="removeImage('${i.id}')">Löschen</button>
       </div>
@@ -378,8 +378,8 @@ async function addImage(){
     document.getElementById("imageUrl").value="";
     document.getElementById("imageName").value="";
     msg.innerHTML=stored
-      ? '<div class="notice">✓ Bild wurde zur Sammlung hinzugefügt und in diesem Browser gespeichert.</div>'
-      : '<div class="notice">✓ Bild wurde hinzugefügt, konnte aber nicht im Browser gespeichert werden. Erstelle jetzt eine fertige HTML-Datei, sonst geht es beim Neuladen verloren.</div>';
+      ? '<div class="notice">Bild wurde zur Sammlung hinzugefügt und in diesem Browser gespeichert.</div>'
+      : '<div class="notice">Bild wurde hinzugefügt, konnte aber nicht im Browser gespeichert werden. Erstelle jetzt eine fertige HTML-Datei, sonst geht es beim Neuladen verloren.</div>';
     saveStatus();updateAll();
   }catch(error){
     const detail=error instanceof TypeError ? "Die Website erlaubt keinen direkten Download durch den Browser (CORS). Lade das Bild zuerst lokal herunter und wähle es dann als Datei aus." : error.message;
@@ -424,7 +424,7 @@ async function importFolder(){
   const hint=storeFailed
     ? "Achtung: Nicht alle Bilder konnten im Browser gespeichert werden. Erstelle jetzt eine fertige HTML-Datei, sonst gehen sie beim Neuladen verloren."
     : "Die Bilder sind in diesem Browser gespeichert. Für andere Geräte erstelle eine fertige HTML-Datei.";
-  msg.innerHTML=`<div class="notice">✓ ${added} Bild${added===1?"":"er"} importiert${skipped?` · ${skipped} bereits vorhanden oder übersprungen`:""}. ${hint}</div>`;
+  msg.innerHTML=`<div class="notice">${added} Bild${added===1?"":"er"} importiert${skipped?` · ${skipped} bereits vorhanden oder übersprungen`:""}. ${hint}</div>`;
 }
 
 function exportHtml(){
