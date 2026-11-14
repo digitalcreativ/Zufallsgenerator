@@ -84,7 +84,7 @@ Folgende Aktionen stehen zur Verfügung:
 
 - **Zufallsbild auswählen:** Zieht ein zufälliges Bild aus der aktuellen Auswahl.
 - **Bild erledigt:** Setzt das angezeigte Bild auf inaktiv und zieht anschliessend weiter.
-- **Nächstes Bild:** Zieht ein weiteres Bild, ohne den Status des aktuellen Bildes zu verändern.
+- **Nächstes Bild:** Zieht ein weiteres Bild, ohne den Status des aktuellen Bildes zu verändern. Das gerade angezeigte Bild wird dabei nicht sofort nochmals gezogen (ausser es ist das letzte aktive Bild).
 - **Kategorie zurücksetzen:** Aktiviert sämtliche Bilder der ausgewählten Kategorie.
 - **Alle Bilder zurücksetzen:** Aktiviert die gesamte Bildsammlung.
 
@@ -176,7 +176,8 @@ Die Anwendung besteht aus einer einzigen zentralen Datei `index.html`. Darin bef
 
 Weitere verwendete Browserfunktionen sind:
 
-- `localStorage` für den Aktivstatus,
+- `localStorage` für den Aktivstatus und die Liste der gelöschten Bilder,
+- IndexedDB für selbst hinzugefügte Bilder (dauerhaft im Browser gespeichert),
 - FileReader und Data-URLs für lokale Bilder,
 - Fullscreen API für die Grossansicht,
 - Blob und Object-URL für den HTML-Export.
@@ -199,7 +200,7 @@ Nach der letzten Anpassung wurde kontrolliert:
 
 ## 14. Bekannte Grenzen
 
-- Der Aktivstatus wird nur im jeweiligen Browser und auf dem jeweiligen Gerät gespeichert.
+- Der Aktivstatus sowie hinzugefügte und gelöschte Bilder werden nur im jeweiligen Browser und auf dem jeweiligen Gerät gespeichert. Für ein anderes Gerät muss eine fertige HTML-Datei exportiert werden.
 - Neue Dateien im Ordner `Bilder/` werden nicht automatisch erkannt; sie müssen importiert oder im Programmcode ergänzt werden.
 - Direkte Bild-URLs können durch CORS-Regeln der Quellwebsite blockiert werden.
 - Eine exportierte HTML-Datei mit relativen Bildpfaden benötigt weiterhin den zugehörigen Ordner `Bilder/`.
@@ -210,3 +211,41 @@ Nach der letzten Anpassung wurde kontrolliert:
 Der Zufallsbild-Generator ist einsatzbereit. Die Bildsammlung umfasst 32 Zeichenanleitungen, die Kategorien und Mehrfachzuordnungen funktionieren, und die Bilder können direkt in der Anwendung verwaltet werden.
 
 Alle aktuell mitgelieferten Bilder starten in dieser Version aktiv. Damit steht für den nächsten Einsatz eine vollständig zurückgesetzte Sammlung zur Verfügung.
+
+## 16. Fehlerbehebungen (14. November 2026)
+
+Bei einer Durchsicht des Codes wurden vier Fehler gefunden und behoben.
+
+### Enter-Taste löste zwei Aktionen aus
+
+**Problem:** Nach einem Klick auf «Zufallsbild auswählen» blieb dieser Button ausgewählt. Ein anschliessendes Drücken von Enter markierte das Bild als erledigt und löste zusätzlich den Button aus. Dadurch wurden zwei Bilder gezogen.
+
+**Lösung:** Die Enter-Taste führt jetzt nur noch «Bild erledigt» aus. Die Standardaktion des Browsers wird unterdrückt. In Eingabefeldern hat Enter keine Wirkung auf den Generator.
+
+### «Nächstes Bild» zeigte manchmal dasselbe Bild
+
+**Problem:** Das aktuell angezeigte Bild wurde bei der Auswahl nicht ausgeschlossen. Bei wenigen aktiven Bildern erschien oft dasselbe Bild nochmals.
+
+**Lösung:** Das aktuelle Bild wird beim Ziehen ausgeschlossen, solange mindestens ein anderes aktives Bild vorhanden ist.
+
+### Hinzugefügte Bilder verschwanden beim Neuladen
+
+**Problem:** Im Browser wurde nur der Aktivstatus gespeichert, nicht die Bilder selbst. Bilder, die in der Verwaltung hinzugefügt und nicht exportiert wurden, gingen beim Neuladen verloren. Gelöschte Bilder erschienen nach dem Neuladen wieder.
+
+**Lösung:**
+
+- Hinzugefügte Bilder (einzeln oder per Ordnerimport) werden in der IndexedDB des Browsers gespeichert. Diese bietet deutlich mehr Platz als `localStorage`.
+- Gelöschte Bilder werden in einer Liste (`zufallsbild_geloescht_v1`) im `localStorage` vermerkt und beim Start ausgeblendet.
+- Schlägt das Speichern fehl, erscheint ein Hinweis, die Sammlung sofort zu exportieren.
+- Bilder, die nach einem Export bereits in der HTML-Datei stehen, werden nicht doppelt geladen.
+- Die Schaltfläche **Browser-Speicher für diese Datei löschen** setzt jetzt alles zurück: Erledigt-Status, hinzugefügte und gelöschte Bilder. Vorher erscheint eine Rückfrage, die erklärt, was verloren geht.
+
+### Exportierte Datei war unnötig gross
+
+**Problem:** Der Export kopierte die Seite im aktuell angezeigten Zustand. Eingebettete Bilder standen dadurch mehrfach in der Datei (Bilddaten, Bildsammlung, Vorschau). Zudem öffnete sich die exportierte Datei auf dem Reiter «Bildverwaltung».
+
+**Lösung:** Beim Laden der Seite wird der saubere Ausgangszustand gesichert und für den Export verwendet. Jedes Bild steht nun nur einmal in der Datei, und die exportierte Datei startet auf dem Reiter «Generator». Zusätzlich werden Sonderzeichen in Bildnamen so maskiert, dass sie den Programmcode nicht beschädigen können.
+
+### Angepasste Hinweistexte
+
+Die Erklärungen im Bereich «Änderungen dauerhaft in dieser HTML-Datei speichern» wurden an das neue Verhalten angepasst. Sie weisen darauf hin, dass Änderungen im Browser gespeichert bleiben, für andere Geräte aber ein Export nötig ist.
