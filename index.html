@@ -156,7 +156,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
       <div class="field">
         <label for="imageCategory">Kategorie</label>
         <select id="imageCategory"></select>
-        <small>Tiere, Pflanzen, Dinge, Comics, Gebäude, Fantasy oder Weihnachten.</small>
+        <small>Tiere, Pflanzen, Dinge, Comics, Gebäude, Fantasy, Weihnachten oder Handlettering.</small>
       </div>
     </div>
     <div class="actions">
@@ -189,7 +189,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 <script>
 // Sauberer Zustand der Seite für den Export, bevor etwas dynamisch eingefüllt wird.
 const TEMPLATE_HTML = document.documentElement.outerHTML;
-const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Gebäude","Fantasy","Weihnachten"];
+const CATEGORIES = ["Tiere","Pflanzen","Dinge","Comics","Gebäude","Fantasy","Weihnachten","Handlettering"];
 // Neue Status-Version: Alle mitgelieferten Bilder starten einmalig wieder aktiv.
 const STORAGE_KEY = "zufallsbild_status_v3";
 // Gelöschte Bilder (IDs) und selbst hinzugefügte Bilder werden im Browser gemerkt.
@@ -246,6 +246,12 @@ const INITIAL_IMAGES = [
   {id:"piratenschiff", name:"Piratenschiff", category:"Dinge", image:"Bilder/Piratenschiff.png"},
   {id:"zauberin", name:"Zauberin", category:["Fantasy","Comics"], image:"Bilder/Zauberin.png"},
   {id:"heissluftballon", name:"Heissluftballon", category:"Dinge", image:"Bilder/Heissluftballon.png"},
+  {id:"handlettering-happy", name:"Happy", category:"Handlettering", image:"Bilder/Handlettering_Happy.png"},
+  {id:"handlettering-merry-christmas", name:"Merry Christmas", category:"Handlettering", image:"Bilder/Handlettering_Merry_Christmas.png"},
+  {id:"handlettering-gluecksmoment", name:"Glücksmoment", category:"Handlettering", image:"Bilder/Handlettering_Gluecksmoment.png"},
+  {id:"stempeldruck-stern", name:"Stempeldruck – Stern", category:"Handlettering", image:"Bilder/Stempeldruck_Stern.png"},
+  {id:"stempeldruck-herz", name:"Stempeldruck – Herz", category:"Handlettering", image:"Bilder/Stempeldruck_Herz.png"},
+  {id:"stempeldruck-sonne", name:"Stempeldruck – Sonne", category:"Handlettering", image:"Bilder/Stempeldruck_Sonne.png"},
   // ============================================================
   // HIER KÖNNEN VORBEREITETE BILDER DIREKT IN DEN HTML-CODE.
   // Format:
