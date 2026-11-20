@@ -37,6 +37,8 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
 .generator-controls .filterbar{flex:1 1 320px;grid-template-columns:minmax(180px,280px) auto}
 .generator-controls .actions{margin-top:0;align-items:center}
 .generator-controls .big{font-size:18px;padding:14px 20px}
+.karten{background:var(--accent2);color:#4b2520;border:2px solid var(--accent);font-size:16px;padding:10px 16px}
+.karten:hover:not(:disabled),.karten.active{background:#ffe1d9}
 .image-panel{padding:18px 20px}
 .image-panel>.status{margin:0 0 12px}
 .reset-area{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:0 4px 20px}
@@ -97,6 +99,7 @@ input[type=text],input[type=url],select{width:100%;padding:12px;border:1px solid
     </div>
     <div class="actions">
       <button class="primary big" id="drawBtn">🎲 Zufallsbild auswählen</button>
+      <button class="karten" id="kartenBtn">✏️ Kartenwerkstatt</button>
       <button class="secondary" id="fullscreenBtn">Bild im Vollbild</button>
     </div>
   </div>
@@ -302,27 +305,42 @@ const dbDelete=id=>dbRun("readwrite",s=>s.delete(id));
 const dbClear=()=>dbRun("readwrite",s=>s.clear());
 function populateCategories(){
   const filter=document.getElementById("categoryFilter");
-  filter.innerHTML='<option value="Alle">Alle Kategorien</option>'+CATEGORIES.map(c=>`<option>${c}</option>`).join("");
+  // Handlettering wird nicht über den Filter gewählt, sondern über den Button «Kartenwerkstatt».
+  filter.innerHTML='<option value="Alle">Alle Kategorien</option>'+CATEGORIES.filter(c=>c!==KARTEN_CAT).map(c=>`<option>${c}</option>`).join("");
   document.getElementById("imageCategory").innerHTML=CATEGORIES.map(c=>`<option>${c}</option>`).join("");
 }
 function imageCategories(image){
   return Array.isArray(image.category) ? image.category : [image.category];
 }
+// Handlettering-Bilder gehören nur zur Kartenwerkstatt, nicht zum normalen Zufallsbild.
+const KARTEN_CAT="Handlettering";
+let mode="normal"; // "normal" = Zufallsbild, "karten" = Kartenwerkstatt
+function currentCategory(){
+  return mode==="karten" ? KARTEN_CAT : document.getElementById("categoryFilter").value;
+}
+function setMode(newMode){
+  mode=newMode;
+  document.getElementById("kartenBtn").classList.toggle("active",mode==="karten");
+  updateStats();
+}
 function belongsToCategory(image,category){
-  return category==="Alle"||imageCategories(image).includes(category);
+  const cats=imageCategories(image);
+  if(category===KARTEN_CAT) return cats.includes(KARTEN_CAT);
+  if(cats.includes(KARTEN_CAT)) return false;
+  return category==="Alle"||cats.includes(category);
 }
 function categoryBadges(image){
   return imageCategories(image).map(category=>`<span class="pill">${escapeHtml(category)}</span>`).join(" ");
 }
 function filteredActive(){
-  const cat=document.getElementById("categoryFilter").value;
+  const cat=currentCategory();
   return images.filter(i=>i.active&&belongsToCategory(i,cat));
 }
 function updateStats(){
-  const cat=document.getElementById("categoryFilter").value;
+  const cat=currentCategory();
   const relevant=images.filter(i=>belongsToCategory(i,cat));
   const active=relevant.filter(i=>i.active).length;
-  document.getElementById("stats").textContent=`Aktiv: ${active} von ${relevant.length}`;
+  document.getElementById("stats").textContent=(mode==="karten"?"Kartenwerkstatt · ":"")+`Aktiv: ${active} von ${relevant.length}`;
   document.getElementById("libraryStats").textContent=`Gesamt: ${images.length} · Aktiv: ${images.filter(i=>i.active).length} · Inaktiv: ${images.filter(i=>!i.active).length}`;
 }
 // Verlauf der zuvor angezeigten Bilder (für «Bild zurück»).
@@ -341,10 +359,11 @@ function showImage(img,fromBack){
 function draw(){
   let pool=filteredActive();
   if(!pool.length){
-    const cat=document.getElementById("categoryFilter").value;
+    const cat=currentCategory();
     const relevant=images.filter(i=>belongsToCategory(i,cat));
     if(relevant.length && relevant.every(i=>!i.active)){
-      showEmptyMessage(
+      if(mode==="karten") showEmptyMessage("Alle Vorlagen der Kartenwerkstatt wurden verwendet.","Kartenwerkstatt zurücksetzen");
+      else showEmptyMessage(
         cat==="Alle" ? "Alle Bilder wurden verwendet." : `Alle Bilder der Kategorie «${cat}» wurden verwendet.`,
         cat==="Alle" ? "Alle Bilder zurücksetzen" : "Kategorie zurücksetzen"
       );
@@ -394,7 +413,7 @@ function goBack(){
   updateBackBtn();
 }
 function resetCategory(){
-  const cat=document.getElementById("categoryFilter").value;
+  const cat=currentCategory();
   if(cat==="Alle"){ resetAll(); return; }
   images.filter(i=>belongsToCategory(i,cat)).forEach(i=>i.active=true);
   saveStatus(); currentId=null; clearCurrent(); updateAll();
@@ -554,7 +573,8 @@ async function togglePreviewFullscreen(){
 document.getElementById("preview").onclick=event=>{
   if(event.target.tagName==="IMG")togglePreviewFullscreen();
 };
-document.getElementById("drawBtn").onclick=draw;
+document.getElementById("drawBtn").onclick=()=>{setMode("normal");draw();};
+document.getElementById("kartenBtn").onclick=()=>{setMode("karten");draw();};
 document.getElementById("doneBtn").onclick=finish;
 document.getElementById("backBtn").onclick=goBack;
 
@@ -612,7 +632,7 @@ document.getElementById("timerSelect").onchange=timerReset;
 document.getElementById("nextBtn").onclick=draw;
 document.getElementById("resetCategoryBtn").onclick=resetCategory;
 document.getElementById("resetAllBtn").onclick=resetAll;
-document.getElementById("categoryFilter").onchange=()=>{currentId=null;clearCurrent();updateStats();};
+document.getElementById("categoryFilter").onchange=()=>{currentId=null;clearCurrent();setMode("normal");};
 document.getElementById("addBtn").onclick=addImage;
 document.getElementById("importFolderBtn").onclick=()=>document.getElementById("folderInput").click();
 document.getElementById("folderInput").onchange=importFolder;
